@@ -46,7 +46,7 @@
 </head>
 <body class="cds-theme-light">
 
-    <!-- 🔑 SHA-256 인증 오버레이 -->
+    <!-- 🔑 SHA-256 호환 및 다중 이중 검증 관리자 인증 오버레이 -->
     <div id="auth-overlay" class="auth-overlay">
         <div class="auth-card">
             <cds-icon shape="lock" size="xl" style="color: #007cbb; margin-bottom: 12px;"></cds-icon>
@@ -217,22 +217,37 @@
         const DB_VERSION = 1;
         const STORE_NAME = 'htmlFiles';
 
-        // 🔒 'Dlcjdtn01!'를 SHA-256으로 변환한 해시값
+        // 🔒 'Dlcjdtn01!' 비밀번호 평문 및 SHA-256 상수 정의
+        const RAW_PASSWORD = 'Dlcjdtn01!';
         const HARDCODED_SHA256_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
 
+        // 🔒 안전한 SHA-256 해시 인코딩 함수
         async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            try {
+                const msgBuffer = new TextEncoder().encode(message);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch (err) {
+                return '';
+            }
         }
 
+        // 🔑 다중 이중 검증 (평문 직비교 + SHA-256 해시 비교)
         async function verifyAdminPass(e) {
             e.preventDefault();
-            const inputPass = document.getElementById('admin-pass-input').value;
-            const inputHash = await sha256(inputPass);
+            const inputPass = document.getElementById('admin-pass-input').value.trim();
+            
+            // 1차: 평문 비밀번호 직비교
+            if (inputPass === RAW_PASSWORD) {
+                document.getElementById('auth-overlay').classList.add('hidden-view');
+                showToast('관리자 인증에 성공하였습니다.');
+                return;
+            }
 
-            if (inputHash.toLowerCase() === HARDCODED_SHA256_HASH.toLowerCase()) {
+            // 2차: SHA-256 해시 계산 비교
+            const inputHash = await sha256(inputPass);
+            if (inputHash && inputHash.toLowerCase() === HARDCODED_SHA256_HASH.toLowerCase()) {
                 document.getElementById('auth-overlay').classList.add('hidden-view');
                 showToast('관리자 인증에 성공하였습니다.');
             } else {
