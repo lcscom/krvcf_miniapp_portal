@@ -118,7 +118,7 @@
         </div>
     </div>
 
-    <!-- 🔑 SHA-256 관리자 비밀번호 인증 오버레이 -->
+    <!-- 🔑 관리자 비밀번호 인증 오버레이 -->
     <div id="auth-overlay" class="auth-overlay hidden-view">
         <div class="auth-card">
             <cds-icon shape="lock" size="xl" style="color: #007cbb; margin-bottom: 12px;"></cds-icon>
@@ -182,7 +182,7 @@
                     <div>
                         <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
                         <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
-                            <cds-icon shape="pop-out" style="margin-right: 4px;"></cds-icon> <span id="modal-launch-text" data-i18n="btn_launch">앱 실행</span>
+                            <cds-icon shape="pop-out" id="modal-launch-icon" style="margin-right: 4px;"></cds-icon> <span id="modal-launch-text" data-i18n="btn_launch">앱 실행</span>
                         </button>
                     </div>
                 </div>
@@ -329,7 +329,6 @@
                             <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 선택하신 위치에 반영됩니다.</p>
                             
                             <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
-                                <!-- 🔥 카탈로그 vs 데모룸 게시 위치 선택 라디오 버튼 -->
                                 <div class="clr-form-control clr-row">
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required">게시 위치 선택</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
@@ -571,7 +570,7 @@
         const GITHUB_FILE_PATH = 'apps.json';
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
-        // ⚡ JSONBin.io 하드코딩 설정
+        // ⚡ JSONBin.io 설정
         const JSONBIN_BIN_ID = '6aa672f1ac6210605ac76546'; 
         const JSONBIN_API_KEY = '$2a$10$aJW3V0ks/99Im2eSZBRqnOJ9sRHqgsNXxQ/5gFHyzfOUT1XR6BkAe'; 
 
@@ -1049,7 +1048,6 @@
             }).join('');
         }
 
-        // 🔥 카탈로그 vs 데모룸 라디오 버튼 선택 시 폼 필드 토글
         function toggleFormDisplayType() {
             const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
             const urlInput = document.getElementById('form-github');
@@ -1134,6 +1132,7 @@
             switchTab('myapps'); showToast('msg_submit', 'alert-success', 'check-circle'); 
         }
 
+        // 🎯 모달이 무조건 시원하게 열리도록 안전망 강화
         function openAppModal(id) {
             const app = state.apps.find(a => a.id === id);
             if (!app) return;
@@ -1148,7 +1147,8 @@
             
             setSelectRating(5, 'modal-star-box');
 
-            if(app.isDemo) { 
+            const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
+            if(isDemoType) { 
                 document.getElementById('modal-security-text').innerText = t('safe_file');
             } else { 
                 document.getElementById('modal-security-text').innerText = t('safe_url');
@@ -1157,18 +1157,20 @@
             const btnText = document.getElementById('modal-launch-text');
             const btnIcon = document.getElementById('modal-launch-icon');
             if (btnText) btnText.innerText = t('btn_launch');
-            if (btnIcon) btnIcon.setAttribute('shape', app.isDemo ? 'window-max' : 'pop-out');
+            if (btnIcon) btnIcon.setAttribute('shape', isDemoType ? 'window-max' : 'pop-out');
             
             let thumbSource = '';
             if (app.thumbnail && app.thumbnail.trim() !== '') thumbSource = sanitizeURL(app.thumbnail);
-            else if (app.github && !app.isDemo) thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
+            else if (app.github && !isDemoType) thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
 
             const bannerContainer = document.getElementById('modal-banner-container');
-            bannerContainer.style.background = app.bg || RANDOM_BG_PALETTE[app.id % RANDOM_BG_PALETTE.length];
-            if(thumbSource !== '') {
-                bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">`;
-            } else {
-                bannerContainer.innerHTML = `<span class="card-banner-fallback">${escapeHTML(app.icon || '')}</span>`;
+            if (bannerContainer) {
+                bannerContainer.style.background = app.bg || RANDOM_BG_PALETTE[app.id % RANDOM_BG_PALETTE.length];
+                if(thumbSource !== '') {
+                    bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">`;
+                } else {
+                    bannerContainer.innerHTML = `<span class="card-banner-fallback">${escapeHTML(app.icon || '')}</span>`;
+                }
             }
             
             document.getElementById('app-modal').classList.remove('hidden-view');
@@ -1196,7 +1198,9 @@
 
                 saveState(); 
                 
-                if(app.isDemo || (app.github && app.github.toLowerCase().includes('.html'))) {
+                const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
+
+                if(isDemoType) {
                     document.getElementById('app-modal').classList.add('hidden-view');
                     document.getElementById('iframe-modal-title').innerText = app.name;
                     setSelectRating(5, 'header-star-box');
@@ -1231,8 +1235,10 @@
         function closeIframeModal() { 
             document.getElementById('iframe-modal').classList.add('hidden-view'); 
             const iframe = document.getElementById('iframe-content');
-            iframe.src = ''; 
-            iframe.removeAttribute('srcdoc');
+            if(iframe) {
+                iframe.src = ''; 
+                iframe.removeAttribute('srcdoc');
+            }
             state.activeAppId = null; 
         }
         
