@@ -14,8 +14,8 @@
     
     <script type="module">
         import '@cds/core/icon/register.js';
-        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
-        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon);
+        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, calendarIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, calendarIcon);
     </script>
 
     <style>
@@ -44,7 +44,6 @@
         .card.clickable:hover .card-banner-wrapper img { transform: scale(1.06); }
         .card-banner-fallback { font-size: 48px; font-weight: 800; color: rgba(255, 255, 255, 0.95); text-shadow: 0 2px 6px rgba(0,0,0,0.3); user-select: none; }
 
-        /* 🔥 NEW 아이콘 배지 전용 스타일 */
         .new-badge {
             position: absolute; top: 10px; left: 10px; z-index: 10;
             background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
@@ -67,7 +66,6 @@
         }
         .btn-modal-close:hover { background: #a31a00; }
 
-        /* 📱 모바일 반응형 디바이스 최적화 CSS */
         @media (max-width: 768px) {
             .header-6 { padding: 0 8px; height: auto; flex-wrap: wrap; }
             .header-6 .branding { margin-right: auto; padding: 8px 0; }
@@ -83,7 +81,6 @@
             .search-and-filter > div, .search-and-filter .clr-select-wrapper, .search-and-filter .clr-select, .search-and-filter .search { width: 100% !important; flex: 1 1 100%; }
             #toast-container { top: unset; bottom: 16px; left: 50%; transform: translateX(-50%); right: unset; width: calc(100% - 32px); }
 
-            /* 모바일 헤더 스마트 포맷팅 */
             #iframe-header-bar { padding: 8px 12px !important; flex-wrap: wrap; gap: 8px; }
             #iframe-header-bar .modal-title { font-size: 14px !important; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
             #iframe-header-bar .rating-wrapper { width: 100%; justify-content: space-between; margin-top: 4px; }
@@ -122,7 +119,10 @@
                         <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span>명)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
-                        <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
+                        <div>
+                            <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
+                            <span class="p8" style="color: #888; font-size: 11px;" id="modal-updated-at"></span>
+                        </div>
                         <span class="p7" style="color: #737373; display: flex; align-items: center; gap: 4px;">
                             <cds-icon shape="line-chart" size="sm"></cds-icon> <span id="modal-launches">0</span> <span data-i18n="runs">runs</span>
                         </span>
@@ -158,7 +158,7 @@
         <div class="modal-backdrop" aria-hidden="true" onclick="closeModal()"></div>
     </div>
 
-    <!-- Simulator Fullscreen Modal (모바일 헤더 대응 패치) -->
+    <!-- Simulator Fullscreen Modal -->
     <div class="modal hidden-view" id="iframe-modal" style="z-index: 2000;">
         <div class="modal-dialog" id="iframe-modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
             <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
@@ -404,7 +404,6 @@
         const DB_VERSION = 1;
         const STORE_NAME = 'htmlFiles';
 
-        // 🎨 썸네일 없는 경우 바인딩할 브랜드 그래디언트 랜덤 썸네일 팔레트
         const RANDOM_BG_PALETTE = [
             'linear-gradient(135deg, #002538 0%, #007cbb 100%)',
             'linear-gradient(135deg, #004c6d 0%, #0095d3 100%)',
@@ -524,19 +523,26 @@
             return category.toLowerCase().replace(/[^a-z0-9]/g, '');
         }
 
-        // 🎯 [NEW 태그 테스트 및 전체 카테고리 확충 기본 데이터]
+        // 📅 날짜 스마트 포맷팅 유틸 함수 (YYYY. MM. DD.)
+        function formatDate(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) return '-';
+            return date.toLocaleDateString(currentLang === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+
+        // 🎯 [마지막 수정일자(updatedAt) 속성이 포함된 기본 데이터]
         const DEFAULT_APPS = [
-            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: false }, // 2일전 (NEW)
-            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: '', icon: 'S', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (10 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (3 * 24 * 60 * 60 * 1000), isDemo: false }, // 3일전 (NEW)
-            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: RANDOM_BG_PALETTE[3], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (1 * 24 * 60 * 60 * 1000), isDemo: false }, // 1일전 (NEW)
-            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: RANDOM_BG_PALETTE[4], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (15 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: RANDOM_BG_PALETTE[5], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (20 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (4 * 24 * 60 * 60 * 1000), isDemo: false }, // 4일전 (NEW)
-            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (30 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: '', icon: 'S', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (10 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (10 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (3 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (3 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: RANDOM_BG_PALETTE[3], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (1 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (1 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: RANDOM_BG_PALETTE[4], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (15 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (15 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: RANDOM_BG_PALETTE[5], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (20 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (20 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (4 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (4 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (30 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (30 * 24 * 60 * 60 * 1000), isDemo: false },
             
-            // 데모 룸 전용 시뮬레이터 (isDemo: true)
-            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: true }
+            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: true }
         ];
 
         let selectedRating = 5;
@@ -645,6 +651,7 @@
                 
                 app.rating = parseFloat(newRating.toFixed(1));
                 app.ratingCount = currentCount + 1;
+                app.updatedAt = Date.now(); // 평가 시 마지막 수정/업데이트일 갱신
 
                 saveState();
                 showToast('별점이 성공적으로 등록되었습니다!', 'alert-success', 'check-circle');
@@ -652,7 +659,6 @@
             }
         }
 
-        // 🌟 등록 7일 이내 신규 앱 판단 검증 유틸
         function isNewApp(createdAt) {
             if (!createdAt) return false;
             const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -674,7 +680,7 @@
             filtered.sort((a, b) => {
                 if (sort === 'popular') return (b.launchCount || 0) - (a.launchCount || 0);
                 if (sort === 'rating') return (b.rating || 0) - (a.rating || 0);
-                if (sort === 'newest') return (b.createdAt || 0) - (a.createdAt || 0);
+                if (sort === 'newest') return (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0);
                 if (sort === 'name') return a.name.localeCompare(b.name);
                 return 0;
             });
@@ -690,16 +696,14 @@
                         thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
                     }
                     
-                    // 🎨 썸네일 주소가 없는 경우 설정된 bg나 랜덤 그래디언트 배너 적용
                     const bgBg = app.bg || RANDOM_BG_PALETTE[app.id % RANDOM_BG_PALETTE.length];
                     const bannerHTML = thumbSource !== '' 
                         ? `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">` 
                         : `<span class="card-banner-fallback">${escapeHTML(app.icon)}</span>`;
                         
                     const clickAction = isDemoTarget ? `runDemoDirectly(${app.id})` : `openAppModal(${app.id})`;
-
-                    // 🔥 NEW 태그 아이콘 노출 여부
                     const newTagHTML = isNewApp(app.createdAt) ? `<span class="new-badge">NEW</span>` : '';
+                    const lastUpdatedText = formatDate(app.updatedAt || app.createdAt);
 
                     return `
                     <div class="clr-col-12 clr-col-md-6 clr-col-lg-4" style="margin-bottom: 24px;">
@@ -717,11 +721,15 @@
                                     <span style="font-size: 12px; font-weight: bold; color: #f5a623;"><cds-icon shape="star" class="rating-star" solid></cds-icon>${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1})</span>
                                 </div>
                                 <h3 class="card-title" style="font-size: 16px; margin-bottom: 6px; font-weight: 600;">${escapeHTML(app.name)}</h3>
-                                <div style="display: flex; justify-content: space-between; color: #737373; font-size: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; color: #737373; font-size: 12px; margin-bottom: 8px;">
                                     <span>By. ${escapeHTML(app.author)}</span>
                                     <span><cds-icon shape="line-chart" size="sm"></cds-icon> ${app.launchCount || 0}</span>
                                 </div>
-                                <p class="card-text" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #555; line-height: 1.5;">${escapeHTML(app.desc)}</p>
+                                <p class="card-text" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #555; line-height: 1.5; margin-bottom: 12px;">${escapeHTML(app.desc)}</p>
+                                <!-- 📅 카드의 마지막 수정일자 노출 -->
+                                <div style="border-top: 1px solid #f0f0f0; padding-top: 8px; font-size: 11px; color: #888; display: flex; align-items: center; gap: 4px;">
+                                    <cds-icon shape="calendar" size="xs"></cds-icon> <span>수정: ${lastUpdatedText}</span>
+                                </div>
                             </div>
                         </a>
                     </div>
@@ -735,13 +743,13 @@
         function renderMyApps() {
             const tbody = document.getElementById('myapps-table-body');
             if(!tbody) return;
-            const myApps = state.apps.filter(app => app.author === state.currentUser || app.email === state.currentUser + '@company.com').sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+            const myApps = state.apps.filter(app => app.author === state.currentUser || app.email === state.currentUser + '@company.com').sort((a,b) => (b.updatedAt||b.createdAt||0) - (a.updatedAt||a.createdAt||0));
             
             if (myApps.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 32px; color: #737373;">${t('empty_my')}</td></tr>`; return;
             }
             tbody.innerHTML = myApps.map(app => {
-                const date = app.createdAt ? new Date(app.createdAt).toLocaleDateString(currentLang === 'ko' ? 'ko-KR' : 'en-US') : '-';
+                const date = formatDate(app.updatedAt || app.createdAt);
                 let statusBadge = app.status === 'approved' ? '<span class="label label-success">Approved</span>' : 
                                  (app.status === 'pending' ? '<span class="label label-warning">Pending</span>' : '<span class="label label-danger">Rejected</span>');
                 let typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
@@ -804,8 +812,8 @@
                 await saveFileToIDB(appId, htmlContent);
             }
 
-            // 랜덤 백그라운드 지정
             const randomBg = RANDOM_BG_PALETTE[Math.floor(Math.random() * RANDOM_BG_PALETTE.length)];
+            const nowTime = Date.now();
 
             state.apps.push({
                 id: appId, 
@@ -818,7 +826,7 @@
                 author: emailVal ? emailVal.split('@')[0] : state.currentUser, 
                 status: 'pending', 
                 icon: document.getElementById('form-name').value.charAt(0).toUpperCase(),
-                bg: randomBg, launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now()
+                bg: randomBg, launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: nowTime, updatedAt: nowTime
             });
             
             saveState(); document.getElementById('submit-form').reset(); toggleDemoMode();
@@ -831,6 +839,7 @@
             state.activeAppId = id;
             document.getElementById('modal-title').innerText = app.name || '';
             document.getElementById('modal-author').innerText = `By. ${app.author || ''}`;
+            document.getElementById('modal-updated-at').innerText = `최종 수정: ${formatDate(app.updatedAt || app.createdAt)}`;
             document.getElementById('modal-desc').innerText = app.desc || '';
             document.getElementById('modal-category-badge').innerText = t('cat_' + getCatKey(app.category));
             document.getElementById('modal-launches').innerText = app.launchCount || 0;
@@ -886,6 +895,7 @@
                 
                 app.rating = parseFloat(newRating.toFixed(1));
                 app.ratingCount = currentCount + 1;
+                app.updatedAt = Date.now();
 
                 saveState(); 
                 
