@@ -32,15 +32,16 @@
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); margin-top: 0; background: var(--cds-global-color-gray-0, #ffffff);
-            position: relative;
+            position: relative; cursor: pointer; user-select: none;
         }
         .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.12); border-color: #007cbb; }
+        .card.clickable:active { transform: translateY(-1px); }
 
         .card-banner-wrapper {
             position: relative; width: 100%; height: 160px; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
-        .card-banner-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+        .card-banner-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; pointer-events: none; }
         .card.clickable:hover .card-banner-wrapper img { transform: scale(1.06); }
         .card-banner-fallback { font-size: 48px; font-weight: 800; color: rgba(255, 255, 255, 0.95); text-shadow: 0 2px 6px rgba(0,0,0,0.3); user-select: none; }
 
@@ -49,7 +50,7 @@
             background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
             color: white; font-size: 11px; font-weight: 800; padding: 3px 8px;
             border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            letter-spacing: 0.5px; animation: pulseNew 2s infinite;
+            letter-spacing: 0.5px; animation: pulseNew 2s infinite; pointer-events: none;
         }
         @keyframes pulseNew { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
@@ -177,7 +178,7 @@
                     <div>
                         <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
                         <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
-                            <cds-icon shape="pop-out" style="margin-right: 4px;"></cds-icon> <span data-i18n="btn_launch">앱 실행</span>
+                            <cds-icon shape="pop-out" style="margin-right: 4px;"></cds-icon> <span id="modal-launch-text" data-i18n="btn_launch">앱 실행</span>
                         </button>
                     </div>
                 </div>
@@ -438,7 +439,7 @@
                         </div>
 
                         <div style="background: #e3f2fd; border-left: 4px solid #007cbb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 13px; color: #004c6d;">
-                            🚀 <strong>JSONBin 클라우드 DB 동기화:</strong> 모든 방문자는 접속 시 클라우드 DB에서 실시간 최신 <code>apps.json</code>을 직접 로드합니다.
+                            🚀 <strong>JSONBin 클라우드 DB 동기화:</strong> 모든 방문자는 접속 시 클라우드에서 최신 <code>apps.json</code>을 직접 로드합니다.
                         </div>
                         
                         <div class="clr-row" style="margin-bottom: 32px;">
@@ -554,9 +555,9 @@
         const GITHUB_FILE_PATH = 'apps.json';
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
-        // ⚡ JSONBin.io 하드코딩 설정
-        const JSONBIN_BIN_ID = '6aa672f1ac6210605ac76546'; // <-- 본인의 Bin ID를 직접 하드코딩 입력
-        const JSONBIN_API_KEY = '$2a$10$aJW3V0ks/99Im2eSZBRqnOJ9sRHqgsNXxQ/5gFHyzfOUT1XR6BkAe'; // <-- 본인의 Master API Key를 직접 하드코딩 입력
+        // ⚡ JSONBin.io 하드코딩 설정 (본인의 ID와 API Key 등록)
+        const JSONBIN_BIN_ID = '6aa672f1ac6210605ac76546'; 
+        const JSONBIN_API_KEY = '$2a$10$aJW3V0ks/99Im2eSZBRqnOJ9sRHqgsNXxQ/5gFHyzfOUT1XR6BkAe'; 
 
         let isAdminAuthenticated = false;
 
@@ -735,7 +736,6 @@
         async function loadAppsData() {
             let fetchedData = null;
 
-            // 1) JSONBin.io API 호출
             if (JSONBIN_BIN_ID && JSONBIN_API_KEY) {
                 try {
                     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
@@ -748,7 +748,6 @@
                 } catch(e) { console.warn('JSONBin load error', e); }
             }
 
-            // 2) JSONBin 미설정 시 GitHub Raw 서브 폴백
             if (!fetchedData) {
                 try {
                     const res = await fetch(GITHUB_RAW_APPS_JSON_URL + '?nocache=' + Date.now(), { cache: 'no-store' });
@@ -756,7 +755,6 @@
                 } catch(e) {}
             }
 
-            // 3) 가져온 원동력(Remote) 데이터를 100% 기준으로 화면 출력
             if (fetchedData && Array.isArray(fetchedData)) {
                 state.apps = fetchedData;
             } else {
@@ -988,7 +986,7 @@
 
                     return `
                     <div class="clr-col-12 clr-col-md-6 clr-col-lg-4" style="margin-bottom: 24px;">
-                        <a href="javascript:void(0)" class="card clickable" onclick="${clickAction}" style="text-decoration: none; color: inherit; display: block; height: 100%;">
+                        <div class="card clickable" onclick="${clickAction}" style="height: 100%;">
                             ${newTagHTML}
                             <div class="card-banner-wrapper" style="background: ${escapeHTML(bgBg)};">
                                 ${bannerHTML}
@@ -1008,7 +1006,7 @@
                                 </div>
                                 <p class="card-text" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #555; line-height: 1.5;">${escapeHTML(app.desc)}</p>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 `}).join('');
             }
@@ -1131,8 +1129,8 @@
 
             const btnText = document.getElementById('modal-launch-text');
             const btnIcon = document.getElementById('modal-launch-icon');
-            btnText.innerText = t('btn_launch');
-            btnIcon.setAttribute('shape', app.isDemo ? 'window-max' : 'pop-out');
+            if (btnText) btnText.innerText = t('btn_launch');
+            if (btnIcon) btnIcon.setAttribute('shape', app.isDemo ? 'window-max' : 'pop-out');
             
             let thumbSource = '';
             if (app.thumbnail && app.thumbnail.trim() !== '') thumbSource = sanitizeURL(app.thumbnail);
