@@ -13,9 +13,9 @@
     "status": "approved",
     "icon": "P",
     "bg": "linear-gradient(135deg, #002538 0%, #007cbb 100%)",
-    "launchCount": 0,
+    "launchCount": 1,
     "rating": 5,
-    "ratingCount": 1,
+    "ratingCount": 2,
     "createdAt": 1789292236780
   }
 ]
