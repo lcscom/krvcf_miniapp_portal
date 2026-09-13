@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KR VCF Mini App Admin Console</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/@cds/core@6.8.0/global.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@cds/city@1.1.0/css/bundles/default.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@clr/ui@15.0.0/clr-ui.min.css">
+    
+    <script type="module">
+        import '@cds/core/icon/register.js';
+        import { ClarityIcons, administratorIcon, checkIcon, timesIcon, downloadCloudIcon, uploadCloudIcon, trashIcon, windowMaxIcon, closeIcon, refreshIcon, usersIcon, lockIcon, keyIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(administratorIcon, checkIcon, timesIcon, downloadCloudIcon, uploadCloudIcon, trashIcon, windowMaxIcon, closeIcon, refreshIcon, usersIcon, lockIcon, keyIcon);
+    </script>
+
+    <style>
+        html, body { height: 100%; margin: 0; background-color: #f7f8f9;}
+        .main-container { display: flex; flex-direction: column; min-height: 100vh; }
+        .content-area { padding: 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .hidden-view { display: none !important; }
+        #toast-container { position: fixed; top: 20px; right: 24px; z-index: 1060; width: 350px; transition: all 0.3s ease-in-out; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 12px;}
+        
+        .btn-modal-close {
+            background: #c92100; color: white !important; border: none; border-radius: 4px;
+            padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 13px;
+        }
+        .btn-modal-close:hover { background: #a31a00; }
+
+        /* SHA-256 인증 overlay 스타일 */
+        .auth-overlay {
+            position: fixed; top:0; left:0; width:100vw; height:100vh;
+            background: rgba(0, 37, 56, 0.96); z-index: 3000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            background: white; border-radius: 8px; padding: 32px; width: 380px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;
+        }
+    </style>
+</head>
+<body class="cds-theme-light">
+
+    <!-- 🔑 SHA-256 기반 관리자 로그인 인증 오버레이 -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-card">
+            <cds-icon shape="lock" size="xl" style="color: #007cbb; margin-bottom: 12px;"></cds-icon>
+            <h3 style="margin:0 0 8px 0; font-weight:700;">관리자 인증</h3>
+            <p style="font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5;">VCF 대시보드 접근을 위해 관리자 비밀번호를 입력해 주세요.</p>
+            <form onsubmit="verifyAdminPass(event)">
+                <div class="clr-form-control" style="margin-bottom: 16px;">
+                    <div class="clr-input-wrapper">
+                        <input type="password" id="admin-pass-input" class="clr-input" placeholder="비밀번호 입력..." required style="width: 100%; text-align: center;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin: 0;">보안 로그인</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="hidden-view">
+        <div class="alert alert-app-level alert-success" role="alert" id="toast-alert-box">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <span class="alert-text" id="toast-msg">메시지</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Preview Modal -->
+    <div class="modal hidden-view" id="admin-preview-modal" style="z-index: 2000;">
+        <div class="modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
+            <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
+                <div class="modal-header" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 12px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                    <h3 class="modal-title" id="admin-preview-title" style="color: white; margin: 0; font-size: 16px;">Simulator Preview</h3>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 12px; color: #a0b2c6;">[ESC] 키로 닫기 가능</span>
+                        <button type="button" class="btn-modal-close" onclick="closeAdminPreview()">
+                            <cds-icon shape="close" size="md"></cds-icon> 닫기 (X)
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body" style="flex-grow: 1; padding: 0; overflow: hidden;">
+                    <iframe id="admin-iframe-preview" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true" onclick="closeAdminPreview()"></div>
+    </div>
+
+    <div class="main-container">
+        <header class="header header-6" style="background-color: #002538;">
+            <div class="branding">
+                <span class="title" style="color: white;"><cds-icon shape="administrator" size="md" style="margin-right: 8px;"></cds-icon> KR VCF Mini App Admin</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-sm btn-link nav-icon" onclick="changePasswordPrompt()" style="color: white; margin-right: 8px;"><cds-icon shape="key"></cds-icon> 암호 변경</button>
+                <a href="/" class="nav-link" style="color: white; margin-right: 16px;">일반 페이지로 이동</a>
+            </div>
+        </header>
+
+        <div class="content-container">
+            <div class="content-area">
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <h2 style="margin: 0; font-weight: 600;">통합 관리자 대시보드</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm btn-outline" onclick="exportData()"><cds-icon shape="download-cloud"></cds-icon> 전체 데이터 백업</button>
+                        <label class="btn btn-sm btn-primary" style="margin: 0; cursor: pointer;">
+                            <cds-icon shape="upload-cloud"></cds-icon> 데이터 복원 (Import)
+                            <input type="file" style="display:none" accept=".json" onchange="importData(event)">
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="clr-row" style="margin-bottom: 32px;">
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #e8f4fa; border: 1px solid #007cbb;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-approved" style="font-size: 2.5rem; margin: 0; color: #007cbb; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">승인된 전체 앱</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #fcf2e3; border: 1px solid #e17c00;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-pending" style="font-size: 2.5rem; margin: 0; color: #e17c00; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">대기 중인 요청</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #eaf5e1; border: 1px solid #60B515;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-launches" style="font-size: 2.5rem; margin: 0; color: #60B515; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">누적 앱 실행 횟수</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #f3e5f5; border: 1px solid #8e24aa;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-visitors" style="font-size: 2.5rem; margin: 0; color: #8e24aa; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">총 방문 유저 로그 수</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 12px; font-weight: 600;">앱 등록 대기열 (Pending Queue)</h3>
+                <div id="admin-table-container" class="table-responsive hidden-view">
+                    <table class="table table-compact">
+                        <thead>
+                            <tr>
+                                <th class="left">App Name</th>
+                                <th class="left">Thumbnail / Source</th>
+                                <th class="left">Type / Category</th>
+                                <th class="left">Author (Email)</th>
+                                <th class="right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="admin-empty" class="hidden-view" style="text-align: center; padding: 40px; color: #737373; background: white; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    대기 중인 신규 앱 요청이 없습니다.
+                </div>
+
+                <h3 style="margin-top: 48px; margin-bottom: 12px; font-weight: 600;">전체 앱 관리 (Manage All Apps)</h3>
+                <div class="table-responsive">
+                    <table class="table table-compact">
+                        <thead>
+                            <tr>
+                                <th class="left">App Name</th>
+                                <th class="left">Type / Category</th>
+                                <th class="left">Rating (Count)</th>
+                                <th class="left">Author</th>
+                                <th class="left">Status</th>
+                                <th class="right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-apps-table-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- 실시간 접속 유저 및 IP 로그 현황판 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 48px; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-weight: 600;"><cds-icon shape="users"></cds-icon> 접속 유저 및 IP 기록 로그 (User Traffic Logs)</h3>
+                    <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100);" onclick="clearLogs()"><cds-icon shape="trash"></cds-icon> 로그 비우기</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-compact">
+                        <thead>
+                            <tr>
+                                <th class="left">접속 일시 (Timestamp)</th>
+                                <th class="left">IP 주소 (IP Address)</th>
+                                <th class="left">접속 페이지</th>
+                                <th class="left">User Agent / 브라우저 정보</th>
+                            </tr>
+                        </thead>
+                        <tbody id="access-log-table-body"></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DB_NAME = 'VCFMarketDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'htmlFiles';
+
+        // 🔒 'Dlcjdtn01'을 SHA-256으로 해시 변환한 정답 해시값
+        const DEFAULT_PASS_HASH = '7c4aed46f0414eb1f074d0d3c0133c467a84c2f605fa81a28a391515bb5ec047';
+
+        // 🔒 텍스트 평문을 SHA-256 16진수 문자열로 암호화 인코딩하는 유틸 함수
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function getStoredHash() {
+            return localStorage.getItem('vmapp_admin_hash') || DEFAULT_PASS_HASH;
+        }
+
+        async function verifyAdminPass(e) {
+            e.preventDefault();
+            const inputPass = document.getElementById('admin-pass-input').value;
+            const inputHash = await sha256(inputPass);
+
+            if (inputHash === getStoredHash()) {
+                document.getElementById('auth-overlay').classList.add('hidden-view');
+                showToast('관리자 인증에 성공하였습니다.');
+            } else {
+                alert('비밀번호가 올바르지 않습니다.');
+            }
+        }
+
+        async function changePasswordPrompt() {
+            const currentPass = prompt('현재 비밀번호를 입력하세요:');
+            if (!currentPass) return;
+            
+            const currentHash = await sha256(currentPass);
+            if (currentHash === getStoredHash()) {
+                const newPass = prompt('새로운 비밀번호를 입력하세요:');
+                if (newPass && newPass.trim() !== '') {
+                    const newHash = await sha256(newPass.trim());
+                    localStorage.setItem('vmapp_admin_hash', newHash);
+                    showToast('비밀번호가 안전하게 SHA-256 변환되어 변경되었습니다.');
+                }
+            } else {
+                alert('현재 비밀번호가 일치하지 않습니다.');
+            }
+        }
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function getFileFromIDB(id) {
+            try {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const req = store.get(id);
+                    req.onsuccess = (e) => resolve(e.target.result);
+                    req.onerror = (e) => reject(e.target.error);
+                });
+            } catch(e) { return null; }
+        }
+
+        async function logAdminAccess() {
+            let userIp = 'Private IP / Local';
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                if (response.ok) {
+                    const data = await response.json();
+                    userIp = data.ip;
+                }
+            } catch(e) { console.log('IP fetch skipped'); }
+
+            const logEntry = {
+                timestamp: new Date().toLocaleString(),
+                ip: userIp,
+                page: 'admin.html (Console)',
+                userAgent: navigator.userAgent
+            };
+
+            try {
+                const logs = JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]');
+                logs.unshift(logEntry);
+                if(logs.length > 500) logs.pop();
+                localStorage.setItem('vmapp_access_logs', JSON.stringify(logs));
+            } catch(e){}
+            renderAccessLogs();
+        }
+
+        function escapeHTML(str) { 
+            if (!str) return ''; return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); 
+        }
+
+        const state = { apps: JSON.parse(localStorage.getItem('vmapp_data_final') || '[]') };
+
+        function saveState() {
+            localStorage.setItem('vmapp_data_final', JSON.stringify(state.apps));
+            updateAdminStats(); renderPendingTable(); renderAllAppsTable();
+        }
+
+        window.addEventListener('storage', (e) => {
+            if(e.key === 'vmapp_data_final') {
+                try { state.apps = JSON.parse(e.newValue || '[]'); } catch(err){}
+                updateAdminStats(); renderPendingTable(); renderAllAppsTable();
+            }
+            if(e.key === 'vmapp_access_logs') {
+                renderAccessLogs();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAdminPreview();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            updateAdminStats(); renderPendingTable(); renderAllAppsTable();
+            logAdminAccess();
+        });
+
+        let toastTimer;
+        function showToast(msg, type = 'alert-success') {
+            clearTimeout(toastTimer);
+            const toast = document.getElementById('toast-container'), toastBox = document.getElementById('toast-alert-box');
+            document.getElementById('toast-msg').innerText = msg;
+            toastBox.className = `alert alert-app-level ${type}`;
+            toast.classList.remove('hidden-view');
+            toastTimer = setTimeout(() => { toast.classList.add('hidden-view'); }, 3000);
+        }
+
+        function renderAccessLogs() {
+            const tbody = document.getElementById('access-log-table-body');
+            if(!tbody) return;
+            const logs = JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]');
+            document.getElementById('stat-visitors').innerText = logs.length;
+
+            if (logs.length > 0) {
+                tbody.innerHTML = logs.slice(0, 100).map(log => `
+                    <tr>
+                        <td class="left"><b>${escapeHTML(log.timestamp)}</b></td>
+                        <td class="left"><span class="label label-info">${escapeHTML(log.ip)}</span></td>
+                        <td class="left"><code>${escapeHTML(log.page)}</code></td>
+                        <td class="left" style="font-size: 11px; color: #666; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${escapeHTML(log.userAgent)}
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #737373;">접속 로그 기록이 없습니다.</td></tr>`;
+            }
+        }
+
+        function clearLogs() {
+            if(confirm('모든 유저 접속 IP 로그를 삭제하시겠습니까?')) {
+                localStorage.removeItem('vmapp_access_logs');
+                renderAccessLogs();
+                showToast('접속 로그가 초기화되었습니다.');
+            }
+        }
+
+        function renderPendingTable() {
+            const tableContainer = document.getElementById('admin-table-container'), tbody = document.getElementById('admin-table-body');
+            const emptyMsg = document.getElementById('admin-empty');
+            if(!tbody) return;
+            const pendingApps = state.apps.filter(app => app.status === 'pending');
+            
+            if (pendingApps.length > 0) {
+                emptyMsg.classList.add('hidden-view'); tableContainer.classList.remove('hidden-view');
+                tbody.innerHTML = pendingApps.map(app => {
+                    const thumbBadge = (app.thumbnail && app.thumbnail.trim() !== '') 
+                        ? '<span class="label label-success">Custom Thumb</span><br>' 
+                        : '<span class="label label-info">Auto Thumb</span><br>';
+                    
+                    let sourceText = '';
+                    if (app.isDemo) {
+                        sourceText = `<button class="btn btn-sm btn-link" onclick="previewAdminDemo(${app.id})" style="padding:0; margin:0;"><cds-icon shape="window-max"></cds-icon> 미리보기 (${escapeHTML(app.fileName || 'file.html')})</button>`;
+                    } else {
+                        sourceText = `<a href="${escapeHTML(app.github)}" target="_blank">${escapeHTML(app.github)}</a>`;
+                    }
+
+                    const typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
+                    
+                    return `
+                    <tr>
+                        <td class="left"><b>${escapeHTML(app.name)}</b></td>
+                        <td class="left" style="max-width: 280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            ${thumbBadge}
+                            ${sourceText}
+                        </td>
+                        <td class="left">${typeBadge}<span class="badge">${escapeHTML(app.category)}</span></td>
+                        <td class="left">${escapeHTML(app.author)} ${app.email ? `<br><small style="color:#737373;">${escapeHTML(app.email)}</small>` : ''}</td>
+                        <td class="right" style="min-width: 140px;">
+                            <button class="btn btn-sm btn-success-outline" onclick="adminAction(${app.id}, 'approved')">승인</button>
+                            <button class="btn btn-sm btn-danger-outline" onclick="adminAction(${app.id}, 'rejected')">반려</button>
+                        </td>
+                    </tr>
+                `}).join('');
+            } else {
+                tableContainer.classList.add('hidden-view'); emptyMsg.classList.remove('hidden-view');
+            }
+        }
+
+        async function previewAdminDemo(id) {
+            const app = state.apps.find(a => a.id === id);
+            if(!app) return;
+            const iframe = document.getElementById('admin-iframe-preview');
+            document.getElementById('admin-preview-title').innerText = `[Preview] ${app.name}`;
+            
+            const fileContent = await getFileFromIDB(app.id);
+            if(fileContent) {
+                iframe.removeAttribute('src');
+                const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
+                iframe.src = URL.createObjectURL(blob);
+            } else if(app.htmlContent) {
+                iframe.removeAttribute('src');
+                const blob = new Blob([app.htmlContent], { type: 'text/html;charset=utf-8' });
+                iframe.src = URL.createObjectURL(blob);
+            } else {
+                iframe.src = app.github;
+            }
+            document.getElementById('admin-preview-modal').classList.remove('hidden-view');
+        }
+
+        function closeAdminPreview() {
+            document.getElementById('admin-preview-modal').classList.add('hidden-view');
+            document.getElementById('admin-iframe-preview').src = '';
+        }
+
+        function renderAllAppsTable() {
+            const tbody = document.getElementById('all-apps-table-body');
+            if(!tbody) return;
+            if (state.apps.length > 0) {
+                tbody.innerHTML = state.apps.sort((a,b) => b.createdAt - a.createdAt).map(app => {
+                    let statusBadge = app.status === 'approved' ? '<span class="label label-success">Approved</span>' : 
+                                     (app.status === 'pending' ? '<span class="label label-warning">Pending</span>' : '<span class="label label-danger">Rejected</span>');
+                    let typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
+                    return `
+                        <tr>
+                            <td class="left"><b>${escapeHTML(app.name)}</b></td>
+                            <td class="left">${typeBadge}${escapeHTML(app.category)}</td>
+                            <td class="left">⭐ ${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1}명)</td>
+                            <td class="left">${escapeHTML(app.author)}</td>
+                            <td class="left">${statusBadge}</td>
+                            <td class="right" style="min-width: 120px;">
+                                <button class="btn btn-sm btn-link" onclick="resetRating(${app.id})"><cds-icon shape="refresh"></cds-icon> 리셋</button>
+                                <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100); padding:0; min-width:auto;" onclick="deleteApp(${app.id})"><cds-icon shape="trash"></cds-icon> 삭제</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #737373;">등록된 앱이 없습니다.</td></tr>`;
+            }
+        }
+
+        function resetRating(id) {
+            const index = state.apps.findIndex(a => a.id === id);
+            if (index > -1) {
+                state.apps[index].rating = 5.0;
+                state.apps[index].ratingCount = 1;
+                saveState();
+                showToast('별점이 초기화되었습니다.');
+            }
+        }
+
+        function updateAdminStats() {
+            let approved = 0, pending = 0, launches = 0;
+            state.apps.forEach(app => {
+                if(app.status === 'approved') { approved++; launches += (app.launchCount || 0); }
+                if(app.status === 'pending') { pending++; }
+            });
+            document.getElementById('stat-approved').innerText = approved;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-launches').innerText = launches;
+        }
+
+        function adminAction(id, action) {
+            const index = state.apps.findIndex(a => a.id === id);
+            if (index > -1) {
+                state.apps[index].status = action;
+                if (action === 'approved') {
+                    const colors = ['#002538', '#004c6d', '#007cbb', '#0095d3', '#224d5e'];
+                    state.apps[index].bg = colors[Math.floor(Math.random() * colors.length)];
+                    showToast('성공적으로 승인되었습니다.');
+                } else { showToast('앱 신청이 반려되었습니다.', 'alert-danger'); }
+                saveState();
+            }
+        }
+
+        function deleteApp(id) {
+            if(confirm('정말 이 앱을 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.')) {
+                state.apps = state.apps.filter(app => app.id !== id);
+                saveState(); showToast('앱이 안전하게 삭제되었습니다.', 'alert-success');
+            }
+        }
+
+        function exportData() {
+            const exportObj = {
+                apps: state.apps,
+                accessLogs: JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]')
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `kr_vcf_market_full_backup_${new Date().getTime()}.json`);
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click(); downloadAnchorNode.remove();
+            showToast('전체 앱 데이터 및 유저 IP 로그가 백업되었습니다.');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        state.apps = imported; saveState();
+                    } else if (imported.apps) {
+                        state.apps = imported.apps; saveState();
+                        if (imported.accessLogs) {
+                            localStorage.setItem('vmapp_access_logs', JSON.stringify(imported.accessLogs));
+                            renderAccessLogs();
+                        }
+                    } else { throw new Error("Invalid format"); }
+                    showToast('데이터가 성공적으로 복원되었습니다.');
+                } catch(err) { showToast('잘못된 데이터 형식입니다.', 'alert-danger'); }
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
