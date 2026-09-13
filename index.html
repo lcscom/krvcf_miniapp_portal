@@ -14,8 +14,8 @@
     
     <script type="module">
         import '@cds/core/icon/register.js';
-        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
-        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon);
+        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon);
     </script>
 
     <style>
@@ -422,13 +422,20 @@
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
                             <h2 style="margin: 0; font-weight: 600;">통합 관리자 대시보드</h2>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-sm btn-outline" onclick="promptGithubToken()"><cds-icon shape="key"></cds-icon> GitHub 토큰 설정</button>
                                 <button class="btn btn-sm btn-warning-outline" onclick="resetAllStats()"><cds-icon shape="refresh"></cds-icon> 통계 전체 초기화</button>
-                                <button class="btn btn-sm btn-outline" onclick="exportData()"><cds-icon shape="download-cloud"></cds-icon> 백업</button>
+                                <button class="btn btn-sm btn-outline" onclick="downloadUpdatedAppsJson()"><cds-icon shape="download-cloud"></cds-icon> 수정된 apps.json 다운로드</button>
                                 <label class="btn btn-sm btn-primary" style="margin: 0; cursor: pointer;">
                                     <cds-icon shape="upload-cloud"></cds-icon> 데이터 복원
                                     <input type="file" style="display:none" accept=".json" onchange="importData(event)">
                                 </label>
                             </div>
+                        </div>
+
+                        <div style="background: #e3f2fd; border-left: 4px solid #007cbb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 13px; color: #004c6d;">
+                            🚀 <strong>GitHub <code>apps.json</code> 실시간 연동 중:</strong><br>
+                            저장소 경로: <code>https://github.com/lcscom/krvcf_miniapp_portal/apps.json</code><br>
+                            GitHub 토큰(PAT)을 설정해 두시면 승인, 수정, 삭제 시 GitHub 저장소의 <code>apps.json</code> 파일이 자동 커밋되어 Vercel에 즉시 실시간 반영됩니다.
                         </div>
                         
                         <div class="clr-row" style="margin-bottom: 32px;">
@@ -539,6 +546,11 @@
         const TARGET_PASS = 'Dlcjdtn01!';
         const TARGET_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
 
+        // 🐙 지정하신 GitHub Repository 경로 매핑
+        const GITHUB_REPO_OWNER = 'lcscom';
+        const GITHUB_REPO_NAME = 'krvcf_miniapp_portal';
+        const GITHUB_FILE_PATH = 'apps.json';
+
         let isAdminAuthenticated = false;
 
         const RANDOM_BG_PALETTE = [
@@ -586,10 +598,6 @@
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
-                };
                 request.onsuccess = (e) => resolve(e.target.result);
                 request.onerror = (e) => reject(e.target.error);
             });
@@ -693,42 +701,94 @@
             return category.toLowerCase().replace(/[^a-z0-9]/g, '');
         }
 
-        const DEFAULT_APPS = [
-            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: '', icon: 'S', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (10 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (3 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: RANDOM_BG_PALETTE[3], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (1 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: RANDOM_BG_PALETTE[4], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (15 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: RANDOM_BG_PALETTE[5], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (20 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (4 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (30 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: true }
-        ];
-
         let selectedRating = 5;
 
         const state = {
             currentUser: 'user', activeAppId: null,
-            apps: (() => { 
-                try {
-                    const data = localStorage.getItem('vmapp_data_final'); 
-                    if (!data) return DEFAULT_APPS;
-                    const parsed = JSON.parse(data);
-                    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_APPS;
-                    
-                    const validApproved = parsed.filter(a => a.status === 'approved' && !a.isDemo);
-                    if (validApproved.length === 0) return DEFAULT_APPS;
-                    return parsed;
-                } catch(e) { return DEFAULT_APPS; }
-            })()
+            apps: []
         };
 
-        function saveState() {
+        async function loadAppsData() {
+            try {
+                const response = await fetch('apps.json?t=' + Date.now());
+                if (response.ok) {
+                    const jsonData = await response.json();
+                    const localData = localStorage.getItem('vmapp_data_final');
+                    if (localData) {
+                        const parsedLocal = JSON.parse(localData);
+                        const pendingApps = parsedLocal.filter(a => a.status === 'pending');
+                        state.apps = [...jsonData, ...pendingApps];
+                    } else {
+                        state.apps = jsonData;
+                    }
+                }
+            } catch (err) {
+                const localData = localStorage.getItem('vmapp_data_final');
+                if (localData) { state.apps = JSON.parse(localData); }
+            }
+            
+            renderCatalog(); renderDemoRoom(); renderMyApps();
+        }
+
+        async function commitAppsJsonToGithub() {
+            const token = localStorage.getItem('vmapp_github_token');
+            if (!token) return false;
+
+            try {
+                const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/${GITHUB_FILE_PATH}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (!getRes.ok) return false;
+                const getFileObj = await getRes.json();
+                const fileSha = getFileObj.sha;
+
+                const contentJson = JSON.stringify(state.apps, null, 2);
+                const utf8Bytes = new TextEncoder().encode(contentJson);
+                let binaryStr = '';
+                utf8Bytes.forEach(b => binaryStr += String.fromCharCode(b));
+                const base64Content = btoa(binaryStr);
+
+                const putRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/${GITHUB_FILE_PATH}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'auto: update apps.json from admin console',
+                        content: base64Content,
+                        sha: fileSha
+                    })
+                });
+
+                return putRes.ok;
+            } catch (e) {
+                console.warn('GitHub Commit Error:', e);
+                return false;
+            }
+        }
+
+        async function saveState() {
             try {
                 localStorage.setItem('vmapp_data_final', JSON.stringify(state.apps));
                 renderCatalog(); renderDemoRoom(); renderAdminDashboard();
+
+                const isCommitted = await commitAppsJsonToGithub();
+                if (isCommitted) {
+                    showToast('GitHub apps.json에 실시간 반영 완료! (Vercel 배포 시작됨)', 'alert-success');
+                }
             } catch (e) {
                 showToast('msg_file_size', 'alert-danger', 'error-standard');
+            }
+        }
+
+        function promptGithubToken() {
+            const currentToken = localStorage.getItem('vmapp_github_token') || '';
+            const inputToken = prompt('GitHub Personal Access Token (PAT)을 입력하세요:\n(입력 시 승인/삭제 내역이 GitHub apps.json에 자동 커밋됩니다)', currentToken);
+            if (inputToken !== null) {
+                localStorage.setItem('vmapp_github_token', inputToken.trim());
+                showToast('GitHub 토큰이 등록되었습니다.', 'alert-success');
             }
         }
 
@@ -749,7 +809,6 @@
         function handleRouting() {
             const hash = window.location.hash.replace('#', '') || 'catalog';
             
-            // 관리자 탭 접근 시 보안 인증 수행
             if (hash === 'admin' && !isAdminAuthenticated) {
                 document.getElementById('auth-overlay').classList.remove('hidden-view');
                 document.getElementById('admin-pass-input').focus();
@@ -1097,7 +1156,6 @@
             else navigator.clipboard.writeText(shareText).then(() => showToast('msg_copied', 'alert-info', 'check-circle'));
         }
 
-        // 🎛️ 통합 관리자 대시보드 렌더링 함수들
         function renderAdminDashboard() {
             updateAdminStats();
             renderPendingTable();
@@ -1256,18 +1314,15 @@
             }
         }
 
-        function exportData() {
-            const exportObj = {
-                apps: state.apps,
-                accessLogs: JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]')
-            };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+        function downloadUpdatedAppsJson() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.apps, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `kr_vcf_market_full_backup_${new Date().getTime()}.json`);
+            downloadAnchorNode.setAttribute("download", `apps.json`);
             document.body.appendChild(downloadAnchorNode); 
-            downloadAnchorNode.click(); downloadAnchorNode.remove();
-            showToast('전체 데이터 백업 파일이 다운로드 되었습니다.', 'alert-success');
+            downloadAnchorNode.click(); 
+            downloadAnchorNode.remove();
+            showToast('업데이트된 apps.json 다운로드가 완료되었습니다.', 'alert-success');
         }
 
         function importData(event) {
@@ -1296,6 +1351,7 @@
         document.addEventListener('DOMContentLoaded', () => { 
             applyTheme(); applyI18n();
             document.getElementById('current-user-display').innerText = state.currentUser;
+            loadAppsData();
             handleRouting();
             logAccess('index.html (Marketplace Catalog)');
         });
