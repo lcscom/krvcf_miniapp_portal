@@ -424,7 +424,7 @@
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <button class="btn btn-sm btn-outline" onclick="promptGithubToken()"><cds-icon shape="key"></cds-icon> GitHub 토큰 설정</button>
                                 <button class="btn btn-sm btn-warning-outline" onclick="resetAllStats()"><cds-icon shape="refresh"></cds-icon> 통계 전체 초기화</button>
-                                <button class="btn btn-sm btn-outline" onclick="downloadUpdatedAppsJson()"><cds-icon shape="download-cloud"></cds-icon> 수정된 apps.json 다운로드</button>
+                                <button class="btn btn-sm btn-outline" onclick="exportData()"><cds-icon shape="download-cloud"></cds-icon> 백업</button>
                                 <label class="btn btn-sm btn-primary" style="margin: 0; cursor: pointer;">
                                     <cds-icon shape="upload-cloud"></cds-icon> 데이터 복원
                                     <input type="file" style="display:none" accept=".json" onchange="importData(event)">
@@ -433,9 +433,7 @@
                         </div>
 
                         <div style="background: #e3f2fd; border-left: 4px solid #007cbb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 13px; color: #004c6d;">
-                            🚀 <strong>GitHub <code>apps.json</code> 실시간 연동 중:</strong><br>
-                            저장소 경로: <code>https://github.com/lcscom/krvcf_miniapp_portal/apps.json</code><br>
-                            GitHub 토큰(PAT)을 설정해 두시면 승인, 수정, 삭제 시 GitHub 저장소의 <code>apps.json</code> 파일이 자동 커밋되어 Vercel에 즉시 실시간 반영됩니다.
+                            🚀 <strong>GitHub Raw 직접 로딩 적용 중:</strong> 마켓플레이스는 Vercel 캐시를 우회하여 GitHub Raw 주소에서 최신 <code>apps.json</code> 데이터를 실시간으로 동적 로드합니다.
                         </div>
                         
                         <div class="clr-row" style="margin-bottom: 32px;">
@@ -546,10 +544,12 @@
         const TARGET_PASS = 'Dlcjdtn01!';
         const TARGET_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
 
-        // 🐙 지정하신 GitHub Repository 경로 매핑
         const GITHUB_REPO_OWNER = 'lcscom';
         const GITHUB_REPO_NAME = 'krvcf_miniapp_portal';
         const GITHUB_FILE_PATH = 'apps.json';
+
+        // 🔗 GitHub Raw 직접 접속 주소 정의 (Vercel 캐시 무력화)
+        const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
         let isAdminAuthenticated = false;
 
@@ -708,11 +708,17 @@
             apps: []
         };
 
+        // 🚀 GitHub Raw 주소에서 캐시 없이(no-store) 최신 apps.json 동적 로드
         async function loadAppsData() {
             try {
-                const response = await fetch('apps.json?t=' + Date.now());
+                const response = await fetch(GITHUB_RAW_APPS_JSON_URL + '?t=' + Date.now(), {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+                });
+                
                 if (response.ok) {
                     const jsonData = await response.json();
+                    
                     const localData = localStorage.getItem('vmapp_data_final');
                     if (localData) {
                         const parsedLocal = JSON.parse(localData);
@@ -723,6 +729,7 @@
                     }
                 }
             } catch (err) {
+                console.warn('Raw GitHub load fail, fallback to local', err);
                 const localData = localStorage.getItem('vmapp_data_final');
                 if (localData) { state.apps = JSON.parse(localData); }
             }
@@ -776,7 +783,7 @@
 
                 const isCommitted = await commitAppsJsonToGithub();
                 if (isCommitted) {
-                    showToast('GitHub apps.json에 실시간 반영 완료! (Vercel 배포 시작됨)', 'alert-success');
+                    showToast('GitHub apps.json에 실시간 반영 완료!', 'alert-success');
                 }
             } catch (e) {
                 showToast('msg_file_size', 'alert-danger', 'error-standard');
@@ -1314,15 +1321,19 @@
             }
         }
 
-        function downloadUpdatedAppsJson() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.apps, null, 2));
+        function exportData() {
+            const exportObj = {
+                apps: state.apps,
+                accessLogs: JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]')
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `apps.json`);
+            downloadAnchorNode.setAttribute("download", `kr_vcf_market_full_backup_${new Date().getTime()}.json`);
             document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click(); 
             downloadAnchorNode.remove();
-            showToast('업데이트된 apps.json 다운로드가 완료되었습니다.', 'alert-success');
+            showToast('전체 데이터 백업 파일이 다운로드 되었습니다.', 'alert-success');
         }
 
         function importData(event) {
@@ -1350,7 +1361,6 @@
 
         document.addEventListener('DOMContentLoaded', () => { 
             applyTheme(); applyI18n();
-            document.getElementById('current-user-display').innerText = state.currentUser;
             loadAppsData();
             handleRouting();
             logAccess('index.html (Marketplace Catalog)');
