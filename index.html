@@ -19,31 +19,42 @@
     </script>
 
     <style>
-        html, body { height: 100%; margin: 0; }
+        html, body { height: 100%; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         .main-container { display: flex; flex-direction: column; min-height: 100vh; }
         .content-area { display: flex !important; flex-direction: column !important; padding: 0 !important; }
-        .view-wrapper { flex: 1 0 auto; padding: 28px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-        .site-footer { flex-shrink: 0; padding: 24px; border-top: 1px solid var(--cds-global-color-gray-200, #ccc); text-align: center; color: var(--cds-global-color-gray-600, #737373); font-size: 12px; line-height: 1.6; background-color: var(--cds-global-color-gray-50, transparent); }
+        .view-wrapper { flex: 1 0 auto; padding: 24px 28px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .site-footer { flex-shrink: 0; padding: 20px; border-top: 1px solid var(--cds-global-color-gray-200, #ccc); text-align: center; color: var(--cds-global-color-gray-600, #737373); font-size: 12px; line-height: 1.6; background-color: var(--cds-global-color-gray-50, transparent); }
 
         .hidden-view { display: none !important; }
-        #toast-container { position: fixed; top: 60px; right: 24px; z-index: 1060; width: 350px; transition: all 0.3s ease-in-out; }
+        #toast-container { position: fixed; top: 60px; right: 24px; z-index: 2060; width: 320px; transition: all 0.3s ease-in-out; }
         
         .card.clickable {
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); margin-top: 0; background: var(--cds-global-color-gray-0, #ffffff);
+            position: relative;
         }
         .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.12); border-color: #007cbb; }
 
         .card-banner-wrapper {
             position: relative; width: 100%; height: 160px; overflow: hidden;
-            background: linear-gradient(135deg, #002538 0%, #007cbb 100%); display: flex; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
         }
         .card-banner-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
         .card.clickable:hover .card-banner-wrapper img { transform: scale(1.06); }
-        .card-banner-fallback { font-size: 52px; font-weight: 800; color: rgba(255, 255, 255, 0.9); text-shadow: 0 2px 6px rgba(0,0,0,0.3); user-select: none; }
+        .card-banner-fallback { font-size: 48px; font-weight: 800; color: rgba(255, 255, 255, 0.95); text-shadow: 0 2px 6px rgba(0,0,0,0.3); user-select: none; }
 
-        .filter-control-panel { background-color: var(--cds-global-color-gray-50, #f7f9fa); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 16px 20px; margin-bottom: 28px; }
+        /* 🔥 NEW 아이콘 배지 전용 스타일 */
+        .new-badge {
+            position: absolute; top: 10px; left: 10px; z-index: 10;
+            background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
+            color: white; font-size: 11px; font-weight: 800; padding: 3px 8px;
+            border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px; animation: pulseNew 2s infinite;
+        }
+        @keyframes pulseNew { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        .filter-control-panel { background-color: var(--cds-global-color-gray-50, #f7f9fa); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; }
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
         .rating-star { color: #f5a623; margin-right: 2px; }
 
@@ -52,32 +63,30 @@
 
         .btn-modal-close {
             background: #c92100; color: white !important; border: none; border-radius: 4px;
-            padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 13px;
+            padding: 6px 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 12px;
         }
         .btn-modal-close:hover { background: #a31a00; }
 
-        /*📱 모바일 전용 반응형 스타일 강화 */
+        /* 📱 모바일 반응형 디바이스 최적화 CSS */
         @media (max-width: 768px) {
-            .header-6 { padding: 0 12px; height: auto; min-height: 56px; flex-wrap: wrap; }
-            .header-6 .branding { margin-right: auto; }
-            .header-6 .branding .title { font-size: 14px; }
-            .header-nav { display: flex; width: 100%; overflow-x: auto; scrollbar-width: none; border-top: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
-            .header-nav::-webkit-scrollbar { display: none; }
-            .header-nav .nav-link { padding: 6px 12px; font-size: 13px; white-space: nowrap; }
-            .header-actions { position: absolute; top: 12px; right: 12px; }
+            .header-6 { padding: 0 8px; height: auto; flex-wrap: wrap; }
+            .header-6 .branding { margin-right: auto; padding: 8px 0; }
+            .header-6 .branding .title { display: inline-block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+            .header-nav { display: flex; width: 100%; overflow-x: auto; white-space: nowrap; border-top: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
+            .header-nav .nav-link { padding: 8px 12px; font-size: 13px; }
+            .header-actions { position: absolute; top: 6px; right: 8px; }
             
-            .view-wrapper { padding: 12px; }
+            .view-wrapper { padding: 16px 12px; }
             .catalog-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
-            .filter-control-panel { padding: 12px; }
+            .filter-control-panel { padding: 12px; margin-bottom: 16px; }
             .search-and-filter { width: 100%; flex-direction: column; gap: 8px; }
             .search-and-filter > div, .search-and-filter .clr-select-wrapper, .search-and-filter .clr-select, .search-and-filter .search { width: 100% !important; flex: 1 1 100%; }
-            
-            /* 시뮬레이터 풀화면 상단 헤더 반응형 개편 */
-            #iframe-modal .modal-header { flex-wrap: wrap; gap: 8px; padding: 8px 12px !important; }
-            #iframe-modal .modal-header > div { flex-wrap: wrap; }
-            .star-item { font-size: 18px; }
-            
-            #toast-container { top: unset; bottom: 16px; right: 12px; left: 12px; width: calc(100% - 24px); }
+            #toast-container { top: unset; bottom: 16px; left: 50%; transform: translateX(-50%); right: unset; width: calc(100% - 32px); }
+
+            /* 모바일 헤더 스마트 포맷팅 */
+            #iframe-header-bar { padding: 8px 12px !important; flex-wrap: wrap; gap: 8px; }
+            #iframe-header-bar .modal-title { font-size: 14px !important; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+            #iframe-header-bar .rating-wrapper { width: 100%; justify-content: space-between; margin-top: 4px; }
         }
     </style>
 </head>
@@ -105,7 +114,7 @@
                     <h3 class="modal-title" id="modal-title" style="font-weight: 700;">App Name</h3>
                 </div>
                 <div class="modal-body" style="padding-top: 0;">
-                    <div id="modal-banner-container" class="card-banner-wrapper" style="height: 200px; margin: -16px -16px 16px -16px; width: calc(100% + 32px);"></div>
+                    <div id="modal-banner-container" class="card-banner-wrapper" style="height: 180px; margin: -16px -16px 16px -16px; width: calc(100% + 32px);"></div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <div>
                             <span class="label label-info" id="modal-category-badge">Category</span>
@@ -149,23 +158,23 @@
         <div class="modal-backdrop" aria-hidden="true" onclick="closeModal()"></div>
     </div>
 
-    <!-- Simulator Fullscreen Modal -->
+    <!-- Simulator Fullscreen Modal (모바일 헤더 대응 패치) -->
     <div class="modal hidden-view" id="iframe-modal" style="z-index: 2000;">
         <div class="modal-dialog" id="iframe-modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
             <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
-                <div class="modal-header" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                <div class="modal-header" id="iframe-header-bar" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
                     <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;">Simulator Demo</h3>
                     
-                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
+                    <div class="rating-wrapper" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
                         <span style="font-size: 11px; color: #e0e0e0;">평가:</span>
-                        <div style="display: flex; gap: 2px; align-items: center;" id="header-star-box">
+                        <div style="display: flex; gap: 4px; align-items: center;" id="header-star-box">
                             <span onclick="setSelectRating(1, 'header-star-box')" class="star-item" data-val="1">★</span>
                             <span onclick="setSelectRating(2, 'header-star-box')" class="star-item" data-val="2">★</span>
                             <span onclick="setSelectRating(3, 'header-star-box')" class="star-item" data-val="3">★</span>
                             <span onclick="setSelectRating(4, 'header-star-box')" class="star-item" data-val="4">★</span>
                             <span onclick="setSelectRating(5, 'header-star-box')" class="star-item active" data-val="5">★</span>
                         </div>
-                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 10px;" onclick="submitRatingOnly()">등록</button>
+                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 11px;" onclick="submitRatingOnly()">등록</button>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -195,7 +204,7 @@
                 <a href="#myapps" class="nav-link" id="nav-myapps"><span class="nav-text" data-i18n="nav_myapps">마이 워크스페이스</span></a>
             </div>
             <div class="header-actions">
-                <button class="btn btn-sm btn-link nav-icon" onclick="toggleLang()" style="color: white; opacity: 0.85;"><cds-icon shape="world"></cds-icon> <span id="lang-display" style="font-weight:bold; margin-left:4px;">EN</span></button>
+                <button class="btn btn-sm btn-link nav-icon" onclick="toggleLang()" style="color: white; opacity: 0.85;"><cds-icon shape="world"></cds-icon> <span id="lang-display" style="font-weight:bold; margin-left:2px;">EN</span></button>
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleTheme()" style="color: white; opacity: 0.85;"><cds-icon shape="moon" id="theme-icon"></cds-icon></button>
             </div>
         </header>
@@ -234,7 +243,7 @@
                                             <option value="Code" data-i18n="cat_code">Code</option>
                                         </select>
                                     </div>
-                                    <div class="search" style="width: 220px;">
+                                    <div class="search">
                                         <label for="search-input"><input id="search-input" type="text" data-i18n-placeholder="search_ph" placeholder="앱 검색..." oninput="renderCatalog()"></label>
                                     </div>
                                 </div>
@@ -266,7 +275,7 @@
                                             <option value="Code" data-i18n="cat_code">Code</option>
                                         </select>
                                     </div>
-                                    <div class="search" style="width: 220px;">
+                                    <div class="search">
                                         <label for="search-input-demo"><input id="search-input-demo" type="text" data-i18n-placeholder="search_ph" placeholder="앱 검색..." oninput="renderDemoRoom()"></label>
                                     </div>
                                 </div>
@@ -324,9 +333,9 @@
                                     <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_thumb">Thumbnail URL</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
                                         <div class="clr-input-wrapper" style="width: 100%;">
-                                            <input type="url" id="form-thumb" class="clr-input" placeholder="비워두면 웹페이지 화면을 자동 캡처합니다." style="width: 100%;">
+                                            <input type="url" id="form-thumb" class="clr-input" placeholder="비워두면 랜덤 패턴 배너로 표현됩니다." style="width: 100%;">
                                         </div>
-                                        <span style="font-size: 11px; color: #737373;" data-i18n="form_thumb_desc">이미지 주소를 입력하거나 비워두면 자동으로 미리보기가 생성됩니다.</span>
+                                        <span style="font-size: 11px; color: #737373;" data-i18n="form_thumb_desc">이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.</span>
                                     </div>
                                 </div>
                                 <div class="clr-form-control clr-row">
@@ -350,7 +359,7 @@
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_desc">Description</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-textarea-wrapper" style="width: 100%;"><textarea id="form-desc" class="clr-textarea" rows="4" required style="width: 100%;"></textarea></div></div>
                                 </div>
-                                <div class="clr-row" style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee;">
+                                <div class="clr-row" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee;">
                                     <div class="clr-col-12" style="text-align: right;"><button type="submit" class="btn btn-primary" data-i18n="btn_submit">운영자 승인 요청</button></div>
                                 </div>
                             </form>
@@ -359,7 +368,7 @@
 
                     <!-- 3. My Workspace View -->
                     <div id="view-myapps" class="hidden-view">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
                             <div>
                                 <h2 style="margin-bottom: 4px; font-weight: 600;" data-i18n="my_title">마이 워크스페이스</h2>
                                 <p class="p5" style="color: #666; margin: 0;" data-i18n="my_desc">내가 신청한 앱의 상태와 내역을 확인합니다.</p>
@@ -394,6 +403,16 @@
         const DB_NAME = 'VCFMarketDB';
         const DB_VERSION = 1;
         const STORE_NAME = 'htmlFiles';
+
+        // 🎨 썸네일 없는 경우 바인딩할 브랜드 그래디언트 랜덤 썸네일 팔레트
+        const RANDOM_BG_PALETTE = [
+            'linear-gradient(135deg, #002538 0%, #007cbb 100%)',
+            'linear-gradient(135deg, #004c6d 0%, #0095d3 100%)',
+            'linear-gradient(135deg, #60B515 0%, #007cbb 100%)',
+            'linear-gradient(135deg, #660092 0%, #8E24AA 100%)',
+            'linear-gradient(135deg, #F28F46 0%, #C92100 100%)',
+            'linear-gradient(135deg, #224D5E 0%, #007CBB 100%)'
+        ];
 
         function openDB() {
             return new Promise((resolve, reject) => {
@@ -465,7 +484,7 @@
                 cat_title: "미니 앱 카탈로그", demo_title: "시뮬레이터 데모 룸", demo_desc: "클릭 시 전체화면 모달로 즉시 실행되는 HTML 시뮬레이터들입니다.",
                 sort_pop: "인기순 (실행순)", sort_rating: "평점 높은순", sort_new: "최신 등록순", sort_name: "이름순 (A-Z)", cat_all: "전체 카테고리", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
-                search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "대상 URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 웹페이지를 자동 캡처합니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 (데모 룸 전시용)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
+                search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "대상 URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 (데모 룸 전시용)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
                 my_title: "마이 워크스페이스", my_desc: "내가 신청한 앱의 상태와 내역을 확인합니다.", empty_my: "신청한 앱 내역이 없습니다.", th_name: "앱 이름", th_type: "유형", th_date: "신청일", th_cat: "카테고리", th_status: "상태", safe_url: "안전한 HTTPS 연결 검증 완료", safe_file: "내장 첨부파일 로드됨", runs: "회 실행", msg_copied: "클립보드 복사 완료", msg_submit: "신청 완료. 워크스페이스를 확인하세요.", msg_sec_err: "안전하지 않은 접근 차단됨", msg_file_size: "파일 크기가 100MB를 초과하여 등록할 수 없습니다.", legal_title: "법적 고지 및 면책 조항 (Disclaimer)", legal_desc: "본 마켓플레이스는 개인이 운영하는 비공식 페이지입니다. 앱 사용으로 인해 발생하는 모든 문제 및 데이터 손실에 대한 최종 책임은 전적으로 사용자 본인에게 있습니다."
             },
             en: {
@@ -474,7 +493,7 @@
                 cat_title: "Mini App Catalog", demo_title: "Simulator Demo Room", demo_desc: "Attached HTML simulators that run instantly inside a full-screen modal.",
                 sort_pop: "Popular (Most Runs)", sort_rating: "Highest Rating", sort_new: "Newest First", sort_name: "Name (A-Z)", cat_all: "All Categories", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
-                search_ph: "Search...", empty_search: "No apps found.", sub_title: "Submit a New Mini App", sub_desc: "Share useful scripts or apps. They will appear after admin approval.", form_name: "App Name", form_email: "Author Email", form_url: "Target URL", form_thumb: "Thumbnail URL (Optional)", form_thumb_desc: "Leave blank to auto-capture the webpage screenshot.", form_type: "App Type", form_is_demo: "Attach HTML File (List in Demo Room)", form_file: "HTML File", form_cat: "Category", form_desc: "Description", btn_submit: "Submit for Approval", 
+                search_ph: "Search...", empty_search: "No apps found.", sub_title: "Submit a New Mini App", sub_desc: "Share useful scripts or apps. They will appear after admin approval.", form_name: "App Name", form_email: "Author Email", form_url: "Target URL", form_thumb: "Thumbnail URL (Optional)", form_thumb_desc: "Leave blank to auto-generate a random gradient thumbnail.", form_type: "App Type", form_is_demo: "Attach HTML File (List in Demo Room)", form_file: "HTML File", form_cat: "Category", form_desc: "Description", btn_submit: "Submit for Approval", 
                 my_title: "My Workspace", my_desc: "Track the status of your submitted apps.", empty_my: "You haven't submitted any apps yet.", th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status", safe_url: "Verified Safe HTTPS Link", safe_file: "Embedded HTML File Loaded", runs: "runs", msg_copied: "Copied to clipboard", msg_submit: "Submitted successfully.", msg_sec_err: "Unsafe URL blocked", msg_file_size: "File size exceeds 100MB limit.", legal_title: "Legal Notice & Disclaimer", legal_desc: "This marketplace is an unofficial page. The user assumes all responsibility for any issues, damages, or data loss resulting from the use of these apps."
             }
         };
@@ -505,16 +524,19 @@
             return category.toLowerCase().replace(/[^a-z0-9]/g, '');
         }
 
+        // 🎯 [NEW 태그 테스트 및 전체 카테고리 확충 기본 데이터]
         const DEFAULT_APPS = [
-            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: '#0065AB', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 100000000, isDemo: false },
-            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'S', bg: '#60B515', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 90000000, isDemo: false },
-            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: '#F28F46', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 50000000, isDemo: false },
-            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: '#8E24AA', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 40000000, isDemo: false },
-            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: '#C92100', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 30000000, isDemo: false },
-            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: '#007CBB', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 25000000, isDemo: false },
-            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: '#004C6D', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 15000000, isDemo: false },
-            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: '#224D5E', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 10000000, isDemo: false },
-            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: '#660092', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 20000000, isDemo: true }
+            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: false }, // 2일전 (NEW)
+            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: '', icon: 'S', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (10 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (3 * 24 * 60 * 60 * 1000), isDemo: false }, // 3일전 (NEW)
+            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: RANDOM_BG_PALETTE[3], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (1 * 24 * 60 * 60 * 1000), isDemo: false }, // 1일전 (NEW)
+            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: RANDOM_BG_PALETTE[4], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (15 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: RANDOM_BG_PALETTE[5], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (20 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (4 * 24 * 60 * 60 * 1000), isDemo: false }, // 4일전 (NEW)
+            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (30 * 24 * 60 * 60 * 1000), isDemo: false },
+            
+            // 데모 룸 전용 시뮬레이터 (isDemo: true)
+            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: true }
         ];
 
         let selectedRating = 5;
@@ -527,6 +549,7 @@
                     if (!data) return DEFAULT_APPS;
                     const parsed = JSON.parse(data);
                     if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_APPS;
+                    
                     const validApproved = parsed.filter(a => a.status === 'approved' && !a.isDemo);
                     if (validApproved.length === 0) return DEFAULT_APPS;
                     return parsed;
@@ -629,6 +652,13 @@
             }
         }
 
+        // 🌟 등록 7일 이내 신규 앱 판단 검증 유틸
+        function isNewApp(createdAt) {
+            if (!createdAt) return false;
+            const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+            return (Date.now() - createdAt) <= SEVEN_DAYS_MS;
+        }
+
         function renderAppGrid(containerId, emptyId, searchInputId, filterCatId, filterSortId, isDemoTarget) {
             const grid = document.getElementById(containerId), empty = document.getElementById(emptyId);
             if(!grid || !empty) return;
@@ -660,16 +690,22 @@
                         thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
                     }
                     
+                    // 🎨 썸네일 주소가 없는 경우 설정된 bg나 랜덤 그래디언트 배너 적용
+                    const bgBg = app.bg || RANDOM_BG_PALETTE[app.id % RANDOM_BG_PALETTE.length];
                     const bannerHTML = thumbSource !== '' 
                         ? `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">` 
                         : `<span class="card-banner-fallback">${escapeHTML(app.icon)}</span>`;
                         
                     const clickAction = isDemoTarget ? `runDemoDirectly(${app.id})` : `openAppModal(${app.id})`;
 
+                    // 🔥 NEW 태그 아이콘 노출 여부
+                    const newTagHTML = isNewApp(app.createdAt) ? `<span class="new-badge">NEW</span>` : '';
+
                     return `
-                    <div class="clr-col-12 clr-col-md-6 clr-col-lg-4" style="margin-bottom: 32px;">
+                    <div class="clr-col-12 clr-col-md-6 clr-col-lg-4" style="margin-bottom: 24px;">
                         <a href="javascript:void(0)" class="card clickable" onclick="${clickAction}" style="text-decoration: none; color: inherit; display: block; height: 100%;">
-                            <div class="card-banner-wrapper" style="background: ${escapeHTML(app.bg || '#002538')};">
+                            ${newTagHTML}
+                            <div class="card-banner-wrapper" style="background: ${escapeHTML(bgBg)};">
                                 ${bannerHTML}
                             </div>
                             <div class="card-block">
@@ -768,6 +804,9 @@
                 await saveFileToIDB(appId, htmlContent);
             }
 
+            // 랜덤 백그라운드 지정
+            const randomBg = RANDOM_BG_PALETTE[Math.floor(Math.random() * RANDOM_BG_PALETTE.length)];
+
             state.apps.push({
                 id: appId, 
                 name: document.getElementById('form-name').value, 
@@ -779,7 +818,7 @@
                 author: emailVal ? emailVal.split('@')[0] : state.currentUser, 
                 status: 'pending', 
                 icon: document.getElementById('form-name').value.charAt(0).toUpperCase(),
-                bg: '#002538', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now()
+                bg: randomBg, launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now()
             });
             
             saveState(); document.getElementById('submit-form').reset(); toggleDemoMode();
@@ -818,7 +857,7 @@
             else if (app.github && !app.isDemo) thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
 
             const bannerContainer = document.getElementById('modal-banner-container');
-            bannerContainer.style.background = app.bg || '#002538';
+            bannerContainer.style.background = app.bg || RANDOM_BG_PALETTE[app.id % RANDOM_BG_PALETTE.length];
             if(thumbSource !== '') {
                 bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">`;
             } else {
