@@ -184,9 +184,9 @@
     "status": "approved",
     "icon": "V",
     "bg": "linear-gradient(135deg, #004c6d 0%, #0095d3 100%)",
-    "launchCount": 3,
+    "launchCount": 4,
     "rating": 5,
-    "ratingCount": 4,
+    "ratingCount": 5,
     "createdAt": 1789294269115
   },
   {
