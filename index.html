@@ -28,7 +28,6 @@
         .hidden-view { display: none !important; }
         #toast-container { position: fixed; top: 60px; right: 24px; z-index: 2060; width: 320px; transition: all 0.3s ease-in-out; }
         
-        /* 🎨 터치 및 클릭 반응성 강화된 카드 클래스 */
         .card.clickable {
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,6 +82,10 @@
             font-size: 11px; font-weight: 500; padding: 4px 10px;
             border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2);
             white-space: nowrap; margin-right: 8px;
+        }
+
+        .radio-type-group {
+            display: flex; gap: 16px; align-items: center; background: #f0f7ff; padding: 12px 16px; border-radius: 6px; border: 1px solid #b3d7ff;
         }
 
         @media (max-width: 768px) {
@@ -323,9 +326,26 @@
                     <div id="view-submit" class="hidden-view">
                         <div style="max-width: 800px; margin: 0 auto; background: var(--cds-global-color-gray-0, #fff); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 24px;">
                             <h2 style="margin-top: 0; font-weight: 600;" data-i18n="sub_title">새 미니 앱 등록 신청</h2>
-                            <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 카탈로그에 반영됩니다.</p>
+                            <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 선택하신 위치에 반영됩니다.</p>
                             
                             <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
+                                <!-- 🔥 카탈로그 vs 데모룸 게시 위치 선택 라디오 버튼 -->
+                                <div class="clr-form-control clr-row">
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required">게시 위치 선택</label>
+                                    <div class="clr-control-container clr-col-12 clr-col-md-9">
+                                        <div class="radio-type-group">
+                                            <label style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                                <input type="radio" name="app-target-type" value="catalog" checked onchange="toggleFormDisplayType()"> 
+                                                <span>📋 일반 카탈로그 (외부 웹 링크)</span>
+                                            </label>
+                                            <label style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #007cbb;">
+                                                <input type="radio" name="app-target-type" value="demoroom" onchange="toggleFormDisplayType()"> 
+                                                <span>🎮 데모 룸 (모달 시뮬레이터 / Raw HTML)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="clr-form-control clr-row">
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_name">App Name</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="text" id="form-name" class="clr-input" required style="width: 100%;"></div></div>
@@ -335,31 +355,26 @@
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_email">Author Email</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="email" id="form-email" class="clr-input" placeholder="user@company.com" required style="width: 100%;"></div></div>
                                 </div>
-                                
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_type">App Type</label>
+
+                                <div class="clr-form-control clr-row" id="url-input-group">
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" id="form-url-label" data-i18n="form_url">Target URL</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
-                                        <div class="clr-toggle-wrapper">
-                                            <input type="checkbox" id="form-is-demo" class="clr-toggle" onchange="toggleDemoMode()">
-                                            <label for="form-is-demo" data-i18n="form_is_demo" style="font-weight: 600; color: #007cbb;">HTML 파일 첨부 / Raw URL (데모 룸 전시)</label>
+                                        <div class="clr-input-wrapper" style="width: 100%;">
+                                            <input type="url" id="form-github" class="clr-input" placeholder="https://..." style="width: 100%;">
                                         </div>
+                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;">* GitHub Raw HTML 주소(예: https://raw.githubusercontent.com/.../app.html)를 직접 입력할 수도 있습니다.</span>
                                     </div>
                                 </div>
 
-                                <div class="clr-form-control clr-row" id="url-input-group">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_url">Target URL</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="url" id="form-github" class="clr-input" placeholder="https://..." required style="width: 100%;"></div></div>
-                                </div>
-
                                 <div class="clr-form-control clr-row hidden-view" id="file-input-group">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_file">HTML 파일 첨부</label>
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_file">HTML 파일 첨부</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
                                         <label class="btn btn-sm btn-outline" style="margin:0;">
                                             <cds-icon shape="upload-cloud"></cds-icon> <span data-i18n="btn_upload">파일 선택</span>
                                             <input type="file" id="form-html-file" accept=".html,.htm" style="display:none;" onchange="updateFileName(this)">
                                         </label>
                                         <span id="file-name-display" style="font-size: 13px; margin-left: 8px; color: #007cbb; font-weight: bold;"></span>
-                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* IndexedDB 연동으로 최대 100MB 파일까지 업로드할 수 있습니다.</span>
+                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* HTML 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 적어주세요.</span>
                                     </div>
                                 </div>
 
@@ -556,7 +571,7 @@
         const GITHUB_FILE_PATH = 'apps.json';
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
-        // ⚡ JSONBin.io 설정 (Master Key / Bin ID)
+        // ⚡ JSONBin.io 하드코딩 설정
         const JSONBIN_BIN_ID = '6aa672f1ac6210605ac76546'; 
         const JSONBIN_API_KEY = '$2a$10$aJW3V0ks/99Im2eSZBRqnOJ9sRHqgsNXxQ/5gFHyzfOUT1XR6BkAe'; 
 
@@ -669,7 +684,7 @@
                 cat_title: "미니 앱 카탈로그", demo_title: "시뮬레이터 데모 룸", demo_desc: "클릭 시 전체화면 모달로 즉시 실행되는 HTML 시뮬레이터들입니다.",
                 sort_pop: "인기순 (실행순)", sort_rating: "평점 높은순", sort_new: "최신 등록순", sort_name: "이름순 (A-Z)", cat_all: "전체 카테고리", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
-                search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "대상 URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 / Raw URL (데모 룸 전시)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
+                search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "Target URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 / Raw URL (데모 룸 전시)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
                 my_title: "마이 워크스페이스", my_desc: "내가 신청한 앱의 상태와 내역을 확인합니다.", empty_my: "신청한 앱 내역이 없습니다.", th_name: "앱 이름", th_type: "유형", th_date: "신청일", th_cat: "카테고리", th_status: "상태", safe_url: "안전한 HTTPS 연결 검증 완료", safe_file: "내장 첨부파일 로드됨", runs: "회 실행", msg_copied: "클립보드 복사 완료", msg_submit: "신청 완료. 워크스페이스를 확인하세요.", msg_sec_err: "안전하지 않은 접근 차단됨", msg_file_size: "파일 크기가 100MB를 초과하여 등록할 수 없습니다.", legal_title: "법적 고지 및 면책 조항 (Disclaimer)", legal_desc: "본 마켓플레이스는 개인이 운영하는 비공식 페이지입니다. 앱 사용으로 인해 발생하는 모든 문제 및 데이터 손실에 대한 최종 책임은 전적으로 사용자 본인에게 있습니다."
             },
             en: {
@@ -944,7 +959,6 @@
             return (Date.now() - createdAt) <= SEVEN_DAYS_MS;
         }
 
-        // 🎯 100% 원클릭 모달 실행이 보장되는 카드 그리드 렌더러
         function renderAppGrid(containerId, emptyId, searchInputId, filterCatId, filterSortId, isDemoTarget) {
             const grid = document.getElementById(containerId), empty = document.getElementById(emptyId);
             if(!grid || !empty) return;
@@ -981,7 +995,6 @@
                         ? `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">` 
                         : `<span class="card-banner-fallback">${escapeHTML(app.icon)}</span>`;
                         
-                    // 데모 룸 및 카탈로그의 원클릭 모달 실행 이벤트 바인딩
                     const clickAction = isDemoTarget ? `runDemoDirectly(${app.id})` : `openAppModal(${app.id})`;
                     const newTagHTML = isNewApp(app.createdAt) ? `<span class="new-badge">NEW</span>` : '';
 
@@ -1036,20 +1049,31 @@
             }).join('');
         }
 
-        function toggleDemoMode() {
-            const isDemo = document.getElementById('form-is-demo').checked;
+        // 🔥 카탈로그 vs 데모룸 라디오 버튼 선택 시 폼 필드 토글
+        function toggleFormDisplayType() {
+            const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
             const urlInput = document.getElementById('form-github');
-            const urlGroup = document.getElementById('url-input-group');
             const fileGroup = document.getElementById('file-input-group');
-            
-            if(isDemo) {
-                urlGroup.classList.add('hidden-view'); urlInput.required = false; urlInput.value = '';
+            const urlDesc = document.getElementById('form-url-desc');
+            const urlLabel = document.getElementById('form-url-label');
+
+            if (selectedType === 'demoroom') {
                 fileGroup.classList.remove('hidden-view');
+                if (urlDesc) urlDesc.style.display = 'block';
+                if (urlLabel) urlLabel.classList.remove('required');
+                urlInput.required = false;
             } else {
-                urlGroup.classList.remove('hidden-view'); urlInput.required = true;
-                fileGroup.classList.add('hidden-view'); document.getElementById('form-html-file').value = '';
+                fileGroup.classList.add('hidden-view');
+                if (urlDesc) urlDesc.style.display = 'none';
+                if (urlLabel) urlLabel.classList.add('required');
+                urlInput.required = true;
+                document.getElementById('form-html-file').value = '';
                 document.getElementById('file-name-display').innerText = '';
             }
+        }
+
+        function toggleDemoMode() {
+            toggleFormDisplayType();
         }
 
         function updateFileName(input) {
@@ -1062,7 +1086,8 @@
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const isDemo = document.getElementById('form-is-demo').checked;
+            const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
+            const isDemo = selectedType === 'demoroom';
             let targetUrl = document.getElementById('form-github').value;
             let emailVal = document.getElementById('form-email').value;
             let appId = Date.now();
@@ -1105,7 +1130,7 @@
                 bg: randomBg, launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now()
             });
             
-            saveState(); document.getElementById('submit-form').reset(); toggleDemoMode();
+            saveState(); document.getElementById('submit-form').reset(); toggleFormDisplayType();
             switchTab('myapps'); showToast('msg_submit', 'alert-success', 'check-circle'); 
         }
 
@@ -1156,7 +1181,6 @@
             await launchApp();
         }
 
-        // 🚀 모달 내에서 HTML 주소나 내장 파일 100% 로드 보장
         async function launchApp() {
             const index = state.apps.findIndex(a => a.id === state.activeAppId);
             if (index > -1) {
@@ -1172,7 +1196,6 @@
 
                 saveState(); 
                 
-                // HTML 데모 시뮬레이터이거나 외부 .html 링크인 경우 모달에서 즉시 오픈
                 if(app.isDemo || (app.github && app.github.toLowerCase().includes('.html'))) {
                     document.getElementById('app-modal').classList.add('hidden-view');
                     document.getElementById('iframe-modal-title').innerText = app.name;
