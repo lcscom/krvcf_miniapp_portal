@@ -32,7 +32,7 @@
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); margin-top: 0; background: var(--cds-global-color-gray-0, #ffffff);
-            position: relative; cursor: pointer;
+            position: relative;
         }
         .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.12); border-color: #007cbb; }
 
@@ -181,7 +181,7 @@
                     <div>
                         <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
                         <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
-                            <cds-icon shape="pop-out" id="modal-launch-icon" style="margin-right: 4px;"></cds-icon> <span id="modal-launch-text" data-i18n="btn_launch">앱 실행</span>
+                            <cds-icon shape="pop-out" style="margin-right: 4px;"></cds-icon> <span>앱 실행</span>
                         </button>
                     </div>
                 </div>
@@ -328,9 +328,9 @@
                             <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.</p>
                             
                             <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
-                                <!-- 🔴 앱 유형 선택 라디오 그룹 -->
+                                <!-- 🔥 앱 유형 선택 라디오 폼 복구 -->
                                 <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_type">앱 유형 (App Type)</label>
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required">게시 위치 선택</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
                                         <div class="radio-type-group">
                                             <label style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
@@ -361,7 +361,7 @@
                                         <div class="clr-input-wrapper" style="width: 100%;">
                                             <input type="url" id="form-github" class="clr-input" placeholder="https://..." required style="width: 100%;">
                                         </div>
-                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;">* GitHub Raw HTML 주소(예: https://raw.../app.html)를 입력해 연결할 수도 있습니다.</span>
+                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;">* GitHub Raw HTML 주소(예: https://raw...)를 직접 입력할 수도 있습니다.</span>
                                     </div>
                                 </div>
 
@@ -373,7 +373,7 @@
                                             <input type="file" id="form-html-file" accept=".html,.htm" style="display:none;" onchange="updateFileName(this)">
                                         </label>
                                         <span id="file-name-display" style="font-size: 13px; margin-left: 8px; color: #007cbb; font-weight: bold;"></span>
-                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 입력하세요 (최대 100MB).</span>
+                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* HTML 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 적어주세요.</span>
                                     </div>
                                 </div>
 
@@ -568,7 +568,6 @@
         const GITHUB_REPO_OWNER = 'lcscom';
         const GITHUB_REPO_NAME = 'krvcf_miniapp_portal';
         const GITHUB_FILE_PATH = 'apps.json';
-
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
         // ⚡ JSONBin.io 하드코딩 설정
@@ -1069,7 +1068,7 @@
             }).join('');
         }
 
-        // 🔥 앱 게시 위치 라디오 버튼 토글 함수 복구
+        // 🔥 앱 유형 라디오 버튼 토글 폼 필드 연동
         function toggleFormDisplayType() {
             const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
             const urlInput = document.getElementById('form-github');
@@ -1175,10 +1174,12 @@
             const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
             document.getElementById('modal-security-text').innerText = isDemoType ? t('safe_file') : t('safe_url');
 
-            const btnText = document.getElementById('modal-launch-text');
-            const btnIcon = document.getElementById('modal-launch-icon');
-            if(btnText) btnText.innerText = t('btn_launch');
-            if(btnIcon) btnIcon.setAttribute('shape', isDemoType ? 'window-max' : 'pop-out');
+            // 🎯 ID 없는 버튼 요소의 내용을 직접 덮어쓰기하여 오류 차단
+            const btn = document.getElementById('modal-launch-btn');
+            if (btn) {
+                const iconShape = isDemoType ? 'window-max' : 'pop-out';
+                btn.innerHTML = `<cds-icon shape="${iconShape}" style="margin-right: 4px;"></cds-icon> <span>${t('btn_launch')}</span>`;
+            }
             
             let thumbSource = '';
             if (app.thumbnail && app.thumbnail.trim() !== '') thumbSource = sanitizeURL(app.thumbnail);
@@ -1197,14 +1198,13 @@
             document.getElementById('app-modal').classList.remove('hidden-view');
         }
 
-        function closeModal() { document.getElementById('app-modal').classList.add('hidden-view'); state.activeAppId = null; }
+        function closeModal() { document.getElementById('app-modal').classList.add('hidden-view'); }
 
         async function runDemoDirectly(id) {
             state.activeAppId = id;
             await launchApp();
         }
 
-        // 🚀 iSIM Raw HTML 및 로컬 파일 전체화면 지원
         async function launchApp() {
             const index = state.apps.findIndex(a => a.id === state.activeAppId);
             if (index > -1) {
@@ -1223,7 +1223,7 @@
                 const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
 
                 if(isDemoType) {
-                    closeModal();
+                    closeModal(); // 기존 모달 닫기
                     
                     const elIframeTitle = document.getElementById('iframe-modal-title');
                     if(elIframeTitle) elIframeTitle.innerText = app.name || '';
@@ -1245,7 +1245,21 @@
                         }
                         else { 
                             iframe.removeAttribute('srcdoc'); 
-                            iframe.src = sanitizeURL(app.github); 
+                            const safeUrl = sanitizeURL(app.github); 
+
+                            // 🚀 GitHub Raw URL 차단 우회를 위한 Fetch Blob 로직 (가장 중요한 부분)
+                            if (safeUrl.includes('raw.githubusercontent.com')) {
+                                try {
+                                    const res = await fetch(safeUrl);
+                                    const text = await res.text();
+                                    const blob = new Blob([text], { type: 'text/html;charset=utf-8' });
+                                    iframe.src = URL.createObjectURL(blob);
+                                } catch(e) {
+                                    iframe.src = safeUrl; // Fetch 실패시 원본 주소 삽입
+                                }
+                            } else {
+                                iframe.src = safeUrl;
+                            }
                         }
                     }
                     
