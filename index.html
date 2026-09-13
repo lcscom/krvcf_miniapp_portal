@@ -14,8 +14,8 @@
     
     <script type="module">
         import '@cds/core/icon/register.js';
-        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
-        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon);
+        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon);
     </script>
 
     <style>
@@ -75,20 +75,22 @@
             background: white; border-radius: 8px; padding: 28px; width: 100%; max-width: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;
         }
 
+        .last-updated-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(255, 255, 255, 0.15); color: #e0f2fe;
+            font-size: 11px; font-weight: 500; padding: 4px 10px;
+            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2);
+            white-space: nowrap; margin-right: 8px;
+        }
+
         @media (max-width: 768px) {
             .header-6 { padding: 0 8px; height: auto; flex-wrap: wrap; }
             .header-6 .branding { margin-right: auto; padding: 8px 0; }
-            .header-6 .branding .title { display: inline-block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+            .header-6 .branding .title { display: inline-block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
             .header-nav { display: flex; width: 100%; overflow-x: auto; white-space: nowrap; border-top: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
-            .header-nav .nav-link { padding: 8px 12px; font-size: 13px; }
-            .header-actions { position: absolute; top: 6px; right: 8px; }
-            
-            .view-wrapper { padding: 16px 12px; }
-            .catalog-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
-            .filter-control-panel { padding: 12px; margin-bottom: 16px; }
-            .search-and-filter { width: 100%; flex-direction: column; gap: 8px; }
-            .search-and-filter > div, .search-and-filter .clr-select-wrapper, .search-and-filter .clr-select, .search-and-filter .search { width: 100% !important; flex: 1 1 100%; }
-            #toast-container { top: unset; bottom: 16px; left: 50%; transform: translateX(-50%); right: unset; width: calc(100% - 32px); }
+            .header-nav .nav-link { padding: 8px 10px; font-size: 12px; }
+            .header-actions { position: absolute; top: 6px; right: 8px; display: flex; align-items: center; }
+            .last-updated-badge { font-size: 10px; padding: 2px 6px; }
 
             #iframe-header-bar { padding: 8px 12px !important; flex-wrap: wrap; gap: 8px; }
             #iframe-header-bar .modal-title { font-size: 14px !important; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
@@ -221,16 +223,19 @@
         <!-- Header -->
         <header class="header header-6">
             <div class="branding">
-                <a href="#catalog" class="nav-link"><cds-icon shape="vm-bug" size="md"></cds-icon><span class="title" data-i18n="brand">KR VCF Mini App Marketplace</span></a>
+                <a href="#catalog" class="nav-link" onclick="switchTab('catalog')"><cds-icon shape="vm-bug" size="md"></cds-icon><span class="title" data-i18n="brand">KR VCF Mini App Marketplace</span></a>
             </div>
             <div class="header-nav">
-                <a href="#catalog" class="nav-link" id="nav-catalog"><span class="nav-text" data-i18n="nav_catalog">카탈로그</span></a>
-                <a href="#demoroom" class="nav-link" id="nav-demoroom"><span class="nav-text" data-i18n="nav_demoroom">데모 룸</span></a>
-                <a href="#submit" class="nav-link" id="nav-submit"><span class="nav-text" data-i18n="nav_submit">앱 신청</span></a>
-                <a href="#myapps" class="nav-link" id="nav-myapps"><span class="nav-text" data-i18n="nav_myapps">마이 워크스페이스</span></a>
-                <a href="#admin" class="nav-link" id="nav-admin" style="color: #ffca28;"><cds-icon shape="administrator"></cds-icon> <span class="nav-text">관리자 콘솔</span></a>
+                <a href="#catalog" class="nav-link active" id="nav-catalog" onclick="switchTab('catalog')"><span class="nav-text" data-i18n="nav_catalog">카탈로그</span></a>
+                <a href="#demoroom" class="nav-link" id="nav-demoroom" onclick="switchTab('demoroom')"><span class="nav-text" data-i18n="nav_demoroom">데모 룸</span></a>
+                <a href="#submit" class="nav-link" id="nav-submit" onclick="switchTab('submit')"><span class="nav-text" data-i18n="nav_submit">앱 신청</span></a>
+                <a href="#myapps" class="nav-link" id="nav-myapps" onclick="switchTab('myapps')"><span class="nav-text" data-i18n="nav_myapps">마이 워크스페이스</span></a>
+                <a href="#admin" class="nav-link" id="nav-admin" onclick="switchTab('admin')" style="color: #ffca28;"><cds-icon shape="administrator"></cds-icon> <span class="nav-text">관리자 콘솔</span></a>
             </div>
             <div class="header-actions">
+                <div class="last-updated-badge" id="apps-last-updated">
+                    <cds-icon shape="history" size="sm"></cds-icon> <span id="apps-updated-time">업데이트 확인 중...</span>
+                </div>
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleLang()" style="color: white; opacity: 0.85;"><cds-icon shape="world"></cds-icon> <span id="lang-display" style="font-weight:bold; margin-left:2px;">EN</span></button>
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleTheme()" style="color: white; opacity: 0.85;"><cds-icon shape="moon" id="theme-icon"></cds-icon></button>
             </div>
@@ -548,7 +553,6 @@
         const GITHUB_REPO_NAME = 'krvcf_miniapp_portal';
         const GITHUB_FILE_PATH = 'apps.json';
 
-        // 🔗 GitHub Raw 직접 접속 주소 정의 (Vercel 캐시 무력화)
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
         let isAdminAuthenticated = false;
@@ -583,8 +587,7 @@
                 isAdminAuthenticated = true;
                 document.getElementById('auth-overlay').classList.add('hidden-view');
                 showToast('관리자 인증에 성공하였습니다.', 'alert-success');
-                window.location.hash = 'admin';
-                renderAdminDashboard();
+                switchTab('admin');
             } else {
                 alert('비밀번호가 올바르지 않습니다.');
             }
@@ -592,7 +595,7 @@
 
         function cancelAdminAuth() {
             document.getElementById('auth-overlay').classList.add('hidden-view');
-            window.location.hash = 'catalog';
+            switchTab('catalog');
         }
 
         function openDB() {
@@ -708,7 +711,45 @@
             apps: []
         };
 
-        // 🚀 GitHub Raw 주소에서 캐시 없이(no-store) 최신 apps.json 동적 로드
+        // 🕒 GitHub API 커밋 시각 조회 (독립 안전망 격리)
+        async function fetchAppsLastUpdatedTime() {
+            const displayEl = document.getElementById('apps-updated-time');
+            if(!displayEl) return;
+
+            try {
+                const apiCommitUrl = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/commits?path=${GITHUB_FILE_PATH}&page=1&per_page=1`;
+                const response = await fetch(apiCommitUrl);
+                
+                if (response.ok) {
+                    const commits = await response.json();
+                    if (commits && commits.length > 0) {
+                        const lastCommitDate = new Date(commits[0].commit.committer.date);
+                        const formattedTime = lastCommitDate.toLocaleString('ko-KR', {
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', hour12: false
+                        });
+                        displayEl.innerText = formattedTime;
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Commit time fetch skipped', err);
+            }
+
+            if (state.apps && state.apps.length > 0) {
+                const maxTime = Math.max(...state.apps.map(a => a.createdAt || 0));
+                if (maxTime > 0) {
+                    displayEl.innerText = new Date(maxTime).toLocaleString('ko-KR', {
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', hour12: false
+                    });
+                    return;
+                }
+            }
+            displayEl.innerText = new Date().toLocaleDateString('ko-KR');
+        }
+
+        // 🚀 apps.json 동적 로드
         async function loadAppsData() {
             try {
                 const response = await fetch(GITHUB_RAW_APPS_JSON_URL + '?t=' + Date.now(), {
@@ -734,7 +775,10 @@
                 if (localData) { state.apps = JSON.parse(localData); }
             }
             
-            renderCatalog(); renderDemoRoom(); renderMyApps();
+            renderCatalog(); 
+            renderDemoRoom(); 
+            renderMyApps();
+            fetchAppsLastUpdatedTime();
         }
 
         async function commitAppsJsonToGithub() {
@@ -784,6 +828,7 @@
                 const isCommitted = await commitAppsJsonToGithub();
                 if (isCommitted) {
                     showToast('GitHub apps.json에 실시간 반영 완료!', 'alert-success');
+                    fetchAppsLastUpdatedTime();
                 }
             } catch (e) {
                 showToast('msg_file_size', 'alert-danger', 'error-standard');
@@ -813,34 +858,39 @@
         }
         function toggleTheme() { isDarkMode = !isDarkMode; localStorage.setItem('vmapp_theme', isDarkMode ? 'dark' : 'light'); applyTheme(); }
 
-        function handleRouting() {
-            const hash = window.location.hash.replace('#', '') || 'catalog';
-            
-            if (hash === 'admin' && !isAdminAuthenticated) {
+        // 🎯 직관적인 탭 스위처 함수
+        function switchTab(targetTab) {
+            if (targetTab === 'admin' && !isAdminAuthenticated) {
                 document.getElementById('auth-overlay').classList.remove('hidden-view');
                 document.getElementById('admin-pass-input').focus();
                 return;
             }
 
-            if (!['catalog', 'demoroom', 'submit', 'myapps', 'admin'].includes(hash)) { window.location.hash = 'catalog'; return; }
+            window.location.hash = targetTab;
+            
             ['catalog', 'demoroom', 'submit', 'myapps', 'admin'].forEach(id => {
                 const el = document.getElementById('view-' + id);
                 const nav = document.getElementById('nav-' + id);
                 if(el) el.classList.add('hidden-view');
                 if(nav) nav.classList.remove('active');
             });
-            
-            const targetView = document.getElementById('view-' + hash);
-            const targetNav = document.getElementById('nav-' + hash);
-            if(targetView) targetView.classList.remove('hidden-view');
-            if(targetNav) targetNav.classList.add('active');
-            
-            window.scrollTo(0, 0); 
-            
-            if(hash === 'catalog') renderCatalog();
-            if(hash === 'demoroom') renderDemoRoom();
-            if(hash === 'myapps') renderMyApps();
-            if(hash === 'admin') renderAdminDashboard();
+
+            const activeView = document.getElementById('view-' + targetTab);
+            const activeNav = document.getElementById('nav-' + targetTab);
+            if(activeView) activeView.classList.remove('hidden-view');
+            if(activeNav) activeNav.classList.add('active');
+
+            window.scrollTo(0, 0);
+
+            if(targetTab === 'catalog') renderCatalog();
+            if(targetTab === 'demoroom') renderDemoRoom();
+            if(targetTab === 'myapps') renderMyApps();
+            if(targetTab === 'admin') renderAdminDashboard();
+        }
+
+        function handleRouting() {
+            const hash = window.location.hash.replace('#', '') || 'catalog';
+            switchTab(hash);
         }
 
         window.addEventListener('hashchange', handleRouting);
@@ -1052,7 +1102,7 @@
             });
             
             saveState(); document.getElementById('submit-form').reset(); toggleDemoMode();
-            window.location.hash = 'myapps'; showToast('msg_submit', 'alert-success', 'check-circle'); 
+            switchTab('myapps'); showToast('msg_submit', 'alert-success', 'check-circle'); 
         }
 
         function openAppModal(id) {
