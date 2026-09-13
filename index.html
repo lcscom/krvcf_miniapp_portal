@@ -28,6 +28,7 @@
         .hidden-view { display: none !important; }
         #toast-container { position: fixed; top: 60px; right: 24px; z-index: 2060; width: 320px; transition: all 0.3s ease-in-out; }
         
+        /* 🎨 터치 및 클릭 반응성 강화된 카드 클래스 */
         .card.clickable {
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -88,6 +89,24 @@
             display: flex; gap: 16px; align-items: center; background: #f0f7ff; padding: 12px 16px; border-radius: 6px; border: 1px solid #b3d7ff;
         }
 
+        /* 🚨 강력한 커스텀 모달 오버레이 스타일 (100% 화면 출력 보장) */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.65); z-index: 2500;
+            display: flex; align-items: center; justify-content: center;
+            box-sizing: border-box; padding: 16px; backdrop-filter: blur(2px);
+        }
+        .custom-modal-dialog {
+            background: white; border-radius: 8px; width: 100%; max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column;
+            animation: modalFadeIn 0.2s ease-out; max-height: 90vh;
+        }
+        .custom-iframe-dialog {
+            background: white; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;
+            border-radius: 0; display: flex; flex-direction: column; overflow: hidden;
+        }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
         @media (max-width: 768px) {
             .header-6 { padding: 0 8px; height: auto; flex-wrap: wrap; }
             .header-6 .branding { margin-right: auto; padding: 8px 0; }
@@ -138,90 +157,84 @@
         </div>
     </div>
 
-    <!-- App Detail Modal -->
-    <div class="modal hidden-view" id="app-modal">
-        <div class="modal-dialog" role="dialog" aria-hidden="true">
-            <div class="modal-content" style="border-radius: 8px; overflow: hidden;">
-                <div class="modal-header">
-                    <button aria-label="Close" class="close" type="button" onclick="closeModal()"><cds-icon shape="close"></cds-icon></button>
-                    <h3 class="modal-title" id="modal-title" style="font-weight: 700;">App Name</h3>
-                </div>
-                <div class="modal-body" style="padding-top: 0;">
-                    <div id="modal-banner-container" class="card-banner-wrapper" style="height: 180px; margin: -16px -16px 16px -16px; width: calc(100% + 32px);"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div>
-                            <span class="label label-info" id="modal-category-badge">Category</span>
-                        </div>
-                        <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span>명)</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
-                        <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
-                        <span class="p7" style="color: #737373; display: flex; align-items: center; gap: 4px;">
-                            <cds-icon shape="line-chart" size="sm"></cds-icon> <span id="modal-launches">0</span> <span data-i18n="runs">runs</span>
-                        </span>
-                    </div>
-                    <p class="p5" id="modal-desc" style="margin-bottom: 16px; white-space: pre-wrap; line-height: 1.6; color: #444;"></p>
-                    
-                    <div style="background: #f9f9f9; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; text-align: center;">
-                        <span style="font-size: 12px; font-weight: 600; color: #555;">앱 사용 후 평가하기:</span>
-                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 6px;" id="modal-star-box">
-                            <span onclick="setSelectRating(1, 'modal-star-box')" class="star-item" data-val="1">★</span>
-                            <span onclick="setSelectRating(2, 'modal-star-box')" class="star-item" data-val="2">★</span>
-                            <span onclick="setSelectRating(3, 'modal-star-box')" class="star-item" data-val="3">★</span>
-                            <span onclick="setSelectRating(4, 'modal-star-box')" class="star-item" data-val="4">★</span>
-                            <span onclick="setSelectRating(5, 'modal-star-box')" class="star-item active" data-val="5">★</span>
-                        </div>
-                    </div>
-
-                    <div style="font-size: 11px; color: #2e7d32; display: flex; align-items: center; gap: 6px; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-weight: 500;">
-                        <cds-icon shape="shield-check" size="sm"></cds-icon> <span id="modal-security-text" data-i18n="safe_url">안전한 HTTPS 연결 검증 완료</span>
-                    </div>
-                </div>
-                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; background-color: #fafafa;">
-                    <button class="btn btn-sm btn-link" type="button" onclick="shareApp()"><cds-icon shape="share" style="margin-right: 4px;"></cds-icon> <span data-i18n="btn_share">공유하기</span></button>
+    <!-- 🎯 1. App Detail Custom Modal Overlay -->
+    <div class="custom-modal-overlay hidden-view" id="app-modal" onclick="if(event.target===this) closeModal();">
+        <div class="custom-modal-dialog" role="dialog">
+            <div style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee;">
+                <h3 style="margin: 0; font-weight: 700; font-size: 18px;" id="modal-title">App Name</h3>
+                <button aria-label="Close" type="button" onclick="closeModal()" style="background: none; border: none; cursor: pointer;"><cds-icon shape="close" size="md"></cds-icon></button>
+            </div>
+            <div style="padding: 0 20px 20px 20px; overflow-y: auto;">
+                <div id="modal-banner-container" class="card-banner-wrapper" style="height: 180px; margin: 0 -20px 16px -20px; width: calc(100% + 40px);"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div>
-                        <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
-                        <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
-                            <cds-icon shape="pop-out" id="modal-launch-icon" style="margin-right: 4px;"></cds-icon> <span id="modal-launch-text" data-i18n="btn_launch">앱 실행</span>
-                        </button>
+                        <span class="label label-info" id="modal-category-badge">Category</span>
                     </div>
+                    <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span>명)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
+                    <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
+                    <span class="p7" style="color: #737373; display: flex; align-items: center; gap: 4px;">
+                        <cds-icon shape="line-chart" size="sm"></cds-icon> <span id="modal-launches">0</span> <span data-i18n="runs">runs</span>
+                    </span>
+                </div>
+                <p class="p5" id="modal-desc" style="margin-bottom: 16px; white-space: pre-wrap; line-height: 1.6; color: #444;"></p>
+                
+                <div style="background: #f9f9f9; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; text-align: center;">
+                    <span style="font-size: 12px; font-weight: 600; color: #555;">앱 사용 후 평가하기:</span>
+                    <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 6px;" id="modal-star-box">
+                        <span onclick="setSelectRating(1, 'modal-star-box')" class="star-item" data-val="1">★</span>
+                        <span onclick="setSelectRating(2, 'modal-star-box')" class="star-item" data-val="2">★</span>
+                        <span onclick="setSelectRating(3, 'modal-star-box')" class="star-item" data-val="3">★</span>
+                        <span onclick="setSelectRating(4, 'modal-star-box')" class="star-item" data-val="4">★</span>
+                        <span onclick="setSelectRating(5, 'modal-star-box')" class="star-item active" data-val="5">★</span>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: #2e7d32; display: flex; align-items: center; gap: 6px; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-weight: 500;">
+                    <cds-icon shape="shield-check" size="sm"></cds-icon> <span id="modal-security-text" data-i18n="safe_url">안전한 HTTPS 연결 검증 완료</span>
+                </div>
+            </div>
+            <div style="padding: 12px 20px; background: #fafafa; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <button class="btn btn-sm btn-link" type="button" onclick="shareApp()"><cds-icon shape="share" style="margin-right: 4px;"></cds-icon> <span data-i18n="btn_share">공유하기</span></button>
+                <div>
+                    <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
+                    <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
+                        <cds-icon shape="pop-out" id="modal-launch-icon" style="margin-right: 4px;"></cds-icon> <span id="modal-launch-text" data-i18n="btn_launch">앱 실행</span>
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="modal-backdrop" aria-hidden="true" onclick="closeModal()"></div>
     </div>
 
-    <!-- Simulator Fullscreen Modal -->
-    <div class="modal hidden-view" id="iframe-modal" style="z-index: 2000;">
-        <div class="modal-dialog" id="iframe-modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
-            <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
-                <div class="modal-header" id="iframe-header-bar" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-                    <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;">Simulator Demo</h3>
-                    
-                    <div class="rating-wrapper" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
-                        <span style="font-size: 11px; color: #e0e0e0;">평가:</span>
-                        <div style="display: flex; gap: 4px; align-items: center;" id="header-star-box">
-                            <span onclick="setSelectRating(1, 'header-star-box')" class="star-item" data-val="1">★</span>
-                            <span onclick="setSelectRating(2, 'header-star-box')" class="star-item" data-val="2">★</span>
-                            <span onclick="setSelectRating(3, 'header-star-box')" class="star-item" data-val="3">★</span>
-                            <span onclick="setSelectRating(4, 'header-star-box')" class="star-item" data-val="4">★</span>
-                            <span onclick="setSelectRating(5, 'header-star-box')" class="star-item active" data-val="5">★</span>
-                        </div>
-                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 11px;" onclick="submitRatingOnly()">등록</button>
+    <!-- 🎮 2. Fullscreen Simulator Custom Modal Overlay -->
+    <div class="custom-modal-overlay hidden-view" id="iframe-modal" style="padding: 0; z-index: 2600;">
+        <div class="custom-iframe-dialog">
+            <div id="iframe-header-bar" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                <h3 id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;">Simulator Demo</h3>
+                
+                <div class="rating-wrapper" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
+                    <span style="font-size: 11px; color: #e0e0e0;">평가:</span>
+                    <div style="display: flex; gap: 4px; align-items: center;" id="header-star-box">
+                        <span onclick="setSelectRating(1, 'header-star-box')" class="star-item" data-val="1">★</span>
+                        <span onclick="setSelectRating(2, 'header-star-box')" class="star-item" data-val="2">★</span>
+                        <span onclick="setSelectRating(3, 'header-star-box')" class="star-item" data-val="3">★</span>
+                        <span onclick="setSelectRating(4, 'header-star-box')" class="star-item" data-val="4">★</span>
+                        <span onclick="setSelectRating(5, 'header-star-box')" class="star-item active" data-val="5">★</span>
                     </div>
-
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" class="btn-modal-close" onclick="closeIframeModal()">
-                            <cds-icon shape="close" size="md"></cds-icon> 닫기
-                        </button>
-                    </div>
+                    <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 11px;" onclick="submitRatingOnly()">등록</button>
                 </div>
-                <div class="modal-body" style="flex-grow: 1; padding: 0; overflow: hidden; background: #fff;">
-                    <iframe id="iframe-content" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" style="width: 100%; height: 100%; border: none;"></iframe>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="btn-modal-close" onclick="closeIframeModal()">
+                        <cds-icon shape="close" size="md"></cds-icon> 닫기
+                    </button>
                 </div>
             </div>
+            <div style="flex-grow: 1; padding: 0; overflow: hidden; background: #fff;">
+                <iframe id="iframe-content" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
         </div>
-        <div class="modal-backdrop" aria-hidden="true" onclick="closeIframeModal()"></div>
     </div>
 
     <div class="main-container">
@@ -570,7 +583,7 @@
         const GITHUB_FILE_PATH = 'apps.json';
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
-        // ⚡ JSONBin.io 설정
+        // ⚡ JSONBin.io 하드코딩 설정
         const JSONBIN_BIN_ID = '6aa672f1ac6210605ac76546'; 
         const JSONBIN_API_KEY = '$2a$10$aJW3V0ks/99Im2eSZBRqnOJ9sRHqgsNXxQ/5gFHyzfOUT1XR6BkAe'; 
 
@@ -693,7 +706,7 @@
                 sort_pop: "Popular (Most Runs)", sort_rating: "Highest Rating", sort_new: "Newest First", sort_name: "Name (A-Z)", cat_all: "All Categories", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
                 search_ph: "Search...", empty_search: "No apps found.", sub_title: "Submit a New Mini App", sub_desc: "Share useful scripts or apps. They will appear after admin approval.", form_name: "App Name", form_email: "Author Email", form_url: "Target URL", form_thumb: "Thumbnail URL (Optional)", form_thumb_desc: "Leave blank to auto-generate a random gradient thumbnail.", form_type: "App Type", form_is_demo: "Attach HTML File / Raw URL (List in Demo Room)", form_file: "HTML File", form_cat: "Category", form_desc: "Description", btn_submit: "Submit for Approval", 
-                my_title: "My Workspace", my_desc: "Track the status of your submitted apps.", empty_my: "You haven't submitted any apps yet.", th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status", safe_url: "Verified Safe HTTPS Link", safe_file: "Embedded HTML File Loaded", runs: "runs", msg_copied: "Copied to clipboard", msg_submit: "Submitted successfully.", msg_sec_err: "Unsafe URL blocked", msg_file_size: "File size exceeds 100MB limit.", legal_title: "Legal Notice & Disclaimer", legal_desc: "This marketplace is an unofficial page. The user assumes all responsibility for any issues, damages, or data loss resulting from the use of these apps."
+                my_title: "My Workspace", my_desc: "Track the status of your submitted apps.", empty_my: "You haven't submitted any apps yet.", th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status", safe_url: "Verified Safe HTTPS Link", safe_file: "Embedded HTML File Loaded", runs: "runs", msg_copied: "Copied to clipboard", msg_submit: "Submitted successfully.", msg_sec_err: "Unsafe URL blocked", msg_file_size: "File size exceeds 100MB limit.", legal_title: "Legal Notice & Disclaimer", legal_desc: "This marketplace is an unofficial page. The user assumes all responsibility for any issues or data loss resulting from the use of these mini-apps."
             }
         };
 
@@ -1059,14 +1072,16 @@
                 fileGroup.classList.remove('hidden-view');
                 if (urlDesc) urlDesc.style.display = 'block';
                 if (urlLabel) urlLabel.classList.remove('required');
-                urlInput.required = false;
+                if (urlInput) urlInput.required = false;
             } else {
                 fileGroup.classList.add('hidden-view');
                 if (urlDesc) urlDesc.style.display = 'none';
                 if (urlLabel) urlLabel.classList.add('required');
-                urlInput.required = true;
-                document.getElementById('form-html-file').value = '';
-                document.getElementById('file-name-display').innerText = '';
+                if (urlInput) urlInput.required = true;
+                const fileInput = document.getElementById('form-html-file');
+                if(fileInput) fileInput.value = '';
+                const fileDisplay = document.getElementById('file-name-display');
+                if(fileDisplay) fileDisplay.innerText = '';
             }
         }
 
@@ -1086,17 +1101,17 @@
             e.preventDefault();
             const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
             const isDemo = selectedType === 'demoroom';
-            let targetUrl = document.getElementById('form-github').value;
-            let emailVal = document.getElementById('form-email').value;
+            let targetUrl = document.getElementById('form-github')?.value || '';
+            let emailVal = document.getElementById('form-email')?.value || '';
             let appId = Date.now();
             let fileName = '';
 
             if (isDemo) {
                 const fileInput = document.getElementById('form-html-file');
-                if (fileInput.files.length === 0 && (!targetUrl || targetUrl.trim() === '')) {
+                if (fileInput && fileInput.files.length === 0 && (!targetUrl || targetUrl.trim() === '')) {
                     alert('HTML 파일을 선택하거나 Target URL을 입력해주세요.'); return; 
                 }
-                if (fileInput.files.length > 0) {
+                if (fileInput && fileInput.files.length > 0) {
                     const file = fileInput.files[0];
                     if (file.size > 100 * 1024 * 1024) {
                         showToast('msg_file_size', 'alert-danger', 'error-standard');
@@ -1113,18 +1128,19 @@
             }
 
             const randomBg = RANDOM_BG_PALETTE[Math.floor(Math.random() * RANDOM_BG_PALETTE.length)];
+            const appName = document.getElementById('form-name')?.value || 'New App';
 
             state.apps.push({
                 id: appId, 
-                name: document.getElementById('form-name').value, 
+                name: appName, 
                 email: emailVal,
                 github: targetUrl, fileName: fileName, isDemo: isDemo,
-                thumbnail: document.getElementById('form-thumb').value,
-                desc: document.getElementById('form-desc').value, 
-                category: document.getElementById('form-category').value,
+                thumbnail: document.getElementById('form-thumb')?.value || '',
+                desc: document.getElementById('form-desc')?.value || '', 
+                category: document.getElementById('form-category')?.value || 'Compute',
                 author: emailVal ? emailVal.split('@')[0] : state.currentUser, 
                 status: 'pending', 
-                icon: document.getElementById('form-name').value.charAt(0).toUpperCase(),
+                icon: appName.charAt(0).toUpperCase(),
                 bg: randomBg, launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now()
             });
             
@@ -1132,27 +1148,33 @@
             switchTab('myapps'); showToast('msg_submit', 'alert-success', 'check-circle'); 
         }
 
-        // 🎯 모달이 무조건 시원하게 열리도록 안전망 강화
+        // 🎯 모달 오픈 보장
         function openAppModal(id) {
             const app = state.apps.find(a => a.id === id);
             if (!app) return;
             state.activeAppId = id;
-            document.getElementById('modal-title').innerText = app.name || '';
-            document.getElementById('modal-author').innerText = `By. ${app.author || ''}`;
-            document.getElementById('modal-desc').innerText = app.desc || '';
-            document.getElementById('modal-category-badge').innerText = t('cat_' + getCatKey(app.category));
-            document.getElementById('modal-launches').innerText = app.launchCount || 0;
-            document.getElementById('modal-rating').innerText = app.rating ? app.rating.toFixed(1) : '5.0';
-            document.getElementById('modal-rating-count').innerText = app.ratingCount || 1;
+            
+            const elTitle = document.getElementById('modal-title');
+            const elAuthor = document.getElementById('modal-author');
+            const elDesc = document.getElementById('modal-desc');
+            const elCatBadge = document.getElementById('modal-category-badge');
+            const elLaunches = document.getElementById('modal-launches');
+            const elRating = document.getElementById('modal-rating');
+            const elRatingCount = document.getElementById('modal-rating-count');
+            const elSecText = document.getElementById('modal-security-text');
+
+            if(elTitle) elTitle.innerText = app.name || '';
+            if(elAuthor) elAuthor.innerText = `By. ${app.author || ''}`;
+            if(elDesc) elDesc.innerText = app.desc || '';
+            if(elCatBadge) elCatBadge.innerText = t('cat_' + getCatKey(app.category));
+            if(elLaunches) elLaunches.innerText = app.launchCount || 0;
+            if(elRating) elRating.innerText = app.rating ? app.rating.toFixed(1) : '5.0';
+            if(elRatingCount) elRatingCount.innerText = app.ratingCount || 1;
             
             setSelectRating(5, 'modal-star-box');
 
             const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
-            if(isDemoType) { 
-                document.getElementById('modal-security-text').innerText = t('safe_file');
-            } else { 
-                document.getElementById('modal-security-text').innerText = t('safe_url');
-            }
+            if(elSecText) elSecText.innerText = isDemoType ? t('safe_file') : t('safe_url');
 
             const btnText = document.getElementById('modal-launch-text');
             const btnIcon = document.getElementById('modal-launch-icon');
@@ -1173,10 +1195,15 @@
                 }
             }
             
-            document.getElementById('app-modal').classList.remove('hidden-view');
+            const modalEl = document.getElementById('app-modal');
+            if(modalEl) modalEl.classList.remove('hidden-view');
         }
 
-        function closeModal() { document.getElementById('app-modal').classList.add('hidden-view'); state.activeAppId = null; }
+        function closeModal() { 
+            const modalEl = document.getElementById('app-modal');
+            if(modalEl) modalEl.classList.add('hidden-view'); 
+            state.activeAppId = null; 
+        }
 
         async function runDemoDirectly(id) {
             state.activeAppId = id;
@@ -1201,29 +1228,34 @@
                 const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
 
                 if(isDemoType) {
-                    document.getElementById('app-modal').classList.add('hidden-view');
-                    document.getElementById('iframe-modal-title').innerText = app.name;
-                    setSelectRating(5, 'header-star-box');
-                    const iframe = document.getElementById('iframe-content');
+                    closeModal();
                     
+                    const elIframeTitle = document.getElementById('iframe-modal-title');
+                    if(elIframeTitle) elIframeTitle.innerText = app.name || '';
+                    setSelectRating(5, 'header-star-box');
+                    
+                    const iframe = document.getElementById('iframe-content');
                     const fileContent = await getFileFromIDB(app.id);
                     
-                    if(fileContent) { 
-                        iframe.removeAttribute('src'); 
-                        const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
-                        iframe.src = URL.createObjectURL(blob);
-                    }
-                    else if(app.htmlContent) { 
-                        iframe.removeAttribute('src'); 
-                        const blob = new Blob([app.htmlContent], { type: 'text/html;charset=utf-8' });
-                        iframe.src = URL.createObjectURL(blob);
-                    }
-                    else { 
-                        iframe.removeAttribute('srcdoc'); 
-                        iframe.src = sanitizeURL(app.github); 
+                    if(iframe) {
+                        if(fileContent) { 
+                            iframe.removeAttribute('src'); 
+                            const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
+                            iframe.src = URL.createObjectURL(blob);
+                        }
+                        else if(app.htmlContent) { 
+                            iframe.removeAttribute('src'); 
+                            const blob = new Blob([app.htmlContent], { type: 'text/html;charset=utf-8' });
+                            iframe.src = URL.createObjectURL(blob);
+                        }
+                        else { 
+                            iframe.removeAttribute('srcdoc'); 
+                            iframe.src = sanitizeURL(app.github); 
+                        }
                     }
                     
-                    document.getElementById('iframe-modal').classList.remove('hidden-view');
+                    const iframeModalEl = document.getElementById('iframe-modal');
+                    if(iframeModalEl) iframeModalEl.classList.remove('hidden-view');
                 } else {
                     const safeUrl = sanitizeURL(app.github);
                     if(safeUrl === '#') { showToast('msg_sec_err', 'alert-danger', 'error-standard'); return; }
@@ -1233,7 +1265,8 @@
         }
 
         function closeIframeModal() { 
-            document.getElementById('iframe-modal').classList.add('hidden-view'); 
+            const iframeModalEl = document.getElementById('iframe-modal');
+            if(iframeModalEl) iframeModalEl.classList.add('hidden-view'); 
             const iframe = document.getElementById('iframe-content');
             if(iframe) {
                 iframe.src = ''; 
