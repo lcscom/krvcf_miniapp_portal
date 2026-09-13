@@ -32,7 +32,7 @@
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); margin-top: 0; background: var(--cds-global-color-gray-0, #ffffff);
-            position: relative;
+            position: relative; cursor: pointer;
         }
         .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.12); border-color: #007cbb; }
 
@@ -83,8 +83,14 @@
             white-space: nowrap; margin-right: 8px;
         }
 
-        .radio-type-group {
-            display: flex; gap: 16px; align-items: center; background: #f0f7ff; padding: 12px 16px; border-radius: 6px; border: 1px solid #b3d7ff;
+        .modal {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .modal.hidden-view {
+            display: none !important;
         }
 
         @media (max-width: 768px) {
@@ -139,13 +145,13 @@
 
     <!-- App Detail Modal -->
     <div class="modal hidden-view" id="app-modal">
-        <div class="modal-dialog" role="dialog" aria-hidden="true">
-            <div class="modal-content" style="border-radius: 8px; overflow: hidden;">
-                <div class="modal-header">
+        <div class="modal-dialog" role="dialog" aria-hidden="true" style="max-width: 600px; width: 100%;">
+            <div class="modal-content" style="border-radius: 8px; overflow: hidden; background: white;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+                    <h3 class="modal-title" id="modal-title" style="font-weight: 700; margin: 0;">App Name</h3>
                     <button aria-label="Close" class="close" type="button" onclick="closeModal()"><cds-icon shape="close"></cds-icon></button>
-                    <h3 class="modal-title" id="modal-title" style="font-weight: 700;">App Name</h3>
                 </div>
-                <div class="modal-body" style="padding-top: 0;">
+                <div class="modal-body" style="padding: 16px;">
                     <div id="modal-banner-container" class="card-banner-wrapper" style="height: 180px; margin: -16px -16px 16px -16px; width: calc(100% + 32px);"></div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <div>
@@ -176,7 +182,7 @@
                         <cds-icon shape="shield-check" size="sm"></cds-icon> <span id="modal-security-text" data-i18n="safe_url">안전한 HTTPS 연결 검증 완료</span>
                     </div>
                 </div>
-                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; background-color: #fafafa;">
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; padding: 12px 16px;">
                     <button class="btn btn-sm btn-link" type="button" onclick="shareApp()"><cds-icon shape="share" style="margin-right: 4px;"></cds-icon> <span data-i18n="btn_share">공유하기</span></button>
                     <div>
                         <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
@@ -325,25 +331,9 @@
                     <div id="view-submit" class="hidden-view">
                         <div style="max-width: 800px; margin: 0 auto; background: var(--cds-global-color-gray-0, #fff); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 24px;">
                             <h2 style="margin-top: 0; font-weight: 600;" data-i18n="sub_title">새 미니 앱 등록 신청</h2>
-                            <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 선택하신 위치에 반영됩니다.</p>
+                            <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.</p>
                             
                             <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required">게시 위치 선택</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9">
-                                        <div class="radio-type-group">
-                                            <label style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                                                <input type="radio" name="app-target-type" value="catalog" checked onchange="toggleFormDisplayType()"> 
-                                                <span>📋 일반 카탈로그 (외부 웹 링크)</span>
-                                            </label>
-                                            <label style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #007cbb;">
-                                                <input type="radio" name="app-target-type" value="demoroom" onchange="toggleFormDisplayType()"> 
-                                                <span>🎮 데모 룸 (모달 시뮬레이터 / Raw HTML)</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <div class="clr-form-control clr-row">
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_name">App Name</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="text" id="form-name" class="clr-input" required style="width: 100%;"></div></div>
@@ -353,26 +343,31 @@
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_email">Author Email</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="email" id="form-email" class="clr-input" placeholder="user@company.com" required style="width: 100%;"></div></div>
                                 </div>
-
-                                <div class="clr-form-control clr-row" id="url-input-group">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" id="form-url-label" data-i18n="form_url">Target URL</label>
+                                
+                                <div class="clr-form-control clr-row">
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_type">App Type</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
-                                        <div class="clr-input-wrapper" style="width: 100%;">
-                                            <input type="url" id="form-github" class="clr-input" placeholder="https://..." style="width: 100%;">
+                                        <div class="clr-toggle-wrapper">
+                                            <input type="checkbox" id="form-is-demo" class="clr-toggle" onchange="toggleDemoMode()">
+                                            <label for="form-is-demo" data-i18n="form_is_demo" style="font-weight: 600; color: #007cbb;">HTML 파일 첨부 (데모 룸 전시)</label>
                                         </div>
-                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;">* GitHub Raw HTML 주소(예: https://raw.githubusercontent.com/.../app.html)를 직접 입력할 수도 있습니다.</span>
                                     </div>
                                 </div>
 
+                                <div class="clr-form-control clr-row" id="url-input-group">
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_url">Target URL</label>
+                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="url" id="form-github" class="clr-input" placeholder="https://..." required style="width: 100%;"></div></div>
+                                </div>
+
                                 <div class="clr-form-control clr-row hidden-view" id="file-input-group">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_file">HTML 파일 첨부</label>
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_file">HTML 파일 첨부</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
                                         <label class="btn btn-sm btn-outline" style="margin:0;">
                                             <cds-icon shape="upload-cloud"></cds-icon> <span data-i18n="btn_upload">파일 선택</span>
                                             <input type="file" id="form-html-file" accept=".html,.htm" style="display:none;" onchange="updateFileName(this)">
                                         </label>
                                         <span id="file-name-display" style="font-size: 13px; margin-left: 8px; color: #007cbb; font-weight: bold;"></span>
-                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* HTML 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 적어주세요.</span>
+                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* IndexedDB 연동으로 최대 100MB 파일까지 업로드할 수 있습니다.</span>
                                     </div>
                                 </div>
 
@@ -407,7 +402,7 @@
                                     <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-textarea-wrapper" style="width: 100%;"><textarea id="form-desc" class="clr-textarea" rows="4" required style="width: 100%;"></textarea></div></div>
                                 </div>
                                 <div class="clr-row" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee;">
-                                    <div class="clr-col-12" style="text-align: right;"><button type="submit" class="btn btn-primary" data-i18n="btn_submit">운영자 승인 요청</button></div>
+                                    <div class="clr-col-12" style="text-align: right;"><button type="submit" class="btn btn-primary" id="submit-btn" data-i18n="btn_submit">운영자 승인 요청</button></div>
                                 </div>
                             </form>
                         </div>
@@ -567,6 +562,7 @@
         const GITHUB_REPO_OWNER = 'lcscom';
         const GITHUB_REPO_NAME = 'krvcf_miniapp_portal';
         const GITHUB_FILE_PATH = 'apps.json';
+
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
         // ⚡ JSONBin.io 하드코딩 설정
@@ -682,7 +678,7 @@
                 cat_title: "미니 앱 카탈로그", demo_title: "시뮬레이터 데모 룸", demo_desc: "클릭 시 전체화면 모달로 즉시 실행되는 HTML 시뮬레이터들입니다.",
                 sort_pop: "인기순 (실행순)", sort_rating: "평점 높은순", sort_new: "최신 등록순", sort_name: "이름순 (A-Z)", cat_all: "전체 카테고리", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
-                search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "Target URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 / Raw URL (데모 룸 전시)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
+                search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "대상 URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 (데모 룸 전시용)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
                 my_title: "마이 워크스페이스", my_desc: "내가 신청한 앱의 상태와 내역을 확인합니다.", empty_my: "신청한 앱 내역이 없습니다.", th_name: "앱 이름", th_type: "유형", th_date: "신청일", th_cat: "카테고리", th_status: "상태", safe_url: "안전한 HTTPS 연결 검증 완료", safe_file: "내장 첨부파일 로드됨", runs: "회 실행", msg_copied: "클립보드 복사 완료", msg_submit: "신청 완료. 워크스페이스를 확인하세요.", msg_sec_err: "안전하지 않은 접근 차단됨", msg_file_size: "파일 크기가 100MB를 초과하여 등록할 수 없습니다.", legal_title: "법적 고지 및 면책 조항 (Disclaimer)", legal_desc: "본 마켓플레이스는 개인이 운영하는 비공식 페이지입니다. 앱 사용으로 인해 발생하는 모든 문제 및 데이터 손실에 대한 최종 책임은 전적으로 사용자 본인에게 있습니다."
             },
             en: {
@@ -691,7 +687,7 @@
                 cat_title: "Mini App Catalog", demo_title: "Simulator Demo Room", demo_desc: "Attached HTML simulators that run instantly inside a full-screen modal.",
                 sort_pop: "Popular (Most Runs)", sort_rating: "Highest Rating", sort_new: "Newest First", sort_name: "Name (A-Z)", cat_all: "All Categories", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
-                search_ph: "Search...", empty_search: "No apps found.", sub_title: "Submit a New Mini App", sub_desc: "Share useful scripts or apps. They will appear after admin approval.", form_name: "App Name", form_email: "Author Email", form_url: "Target URL", form_thumb: "Thumbnail URL (Optional)", form_thumb_desc: "Leave blank to auto-generate a random gradient thumbnail.", form_type: "App Type", form_is_demo: "Attach HTML File / Raw URL (List in Demo Room)", form_file: "HTML File", form_cat: "Category", form_desc: "Description", btn_submit: "Submit for Approval", 
+                search_ph: "Search...", empty_search: "No apps found.", sub_title: "Submit a New Mini App", sub_desc: "Share useful scripts or apps. They will appear after admin approval.", form_name: "App Name", form_email: "Author Email", form_url: "Target URL", form_thumb: "Thumbnail URL (Optional)", form_thumb_desc: "Leave blank to auto-generate a random gradient thumbnail.", form_type: "App Type", form_is_demo: "Attach HTML File (List in Demo Room)", form_file: "HTML File", form_cat: "Category", form_desc: "Description", btn_submit: "Submit for Approval", 
                 my_title: "My Workspace", my_desc: "Track the status of your submitted apps.", empty_my: "You haven't submitted any apps yet.", th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status", safe_url: "Verified Safe HTTPS Link", safe_file: "Embedded HTML File Loaded", runs: "runs", msg_copied: "Copied to clipboard", msg_submit: "Submitted successfully.", msg_sec_err: "Unsafe URL blocked", msg_file_size: "File size exceeds 100MB limit.", legal_title: "Legal Notice & Disclaimer", legal_desc: "This marketplace is an unofficial page. The user assumes all responsibility for any issues, damages, or data loss resulting from the use of these apps."
             }
         };
@@ -1092,7 +1088,7 @@
         }
 
         async function handleFormSubmit(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const isDemo = document.getElementById('form-is-demo').checked;
             let targetUrl = document.getElementById('form-github').value;
             let emailVal = document.getElementById('form-email').value;
@@ -1143,6 +1139,7 @@
             const app = state.apps.find(a => a.id === id);
             if (!app) return;
             state.activeAppId = id;
+            
             document.getElementById('modal-title').innerText = app.name || '';
             document.getElementById('modal-author').innerText = `By. ${app.author || ''}`;
             document.getElementById('modal-desc').innerText = app.desc || '';
@@ -1153,27 +1150,26 @@
             
             setSelectRating(5, 'modal-star-box');
 
-            if(app.isDemo) { 
-                document.getElementById('modal-security-text').innerText = t('safe_file');
-            } else { 
-                document.getElementById('modal-security-text').innerText = t('safe_url');
-            }
+            const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
+            document.getElementById('modal-security-text').innerText = isDemoType ? t('safe_file') : t('safe_url');
 
             const btnText = document.getElementById('modal-launch-text');
             const btnIcon = document.getElementById('modal-launch-icon');
             if(btnText) btnText.innerText = t('btn_launch');
-            if(btnIcon) btnIcon.setAttribute('shape', app.isDemo ? 'window-max' : 'pop-out');
+            if(btnIcon) btnIcon.setAttribute('shape', isDemoType ? 'window-max' : 'pop-out');
             
             let thumbSource = '';
             if (app.thumbnail && app.thumbnail.trim() !== '') thumbSource = sanitizeURL(app.thumbnail);
             else if (app.github && !app.isDemo) thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
 
             const bannerContainer = document.getElementById('modal-banner-container');
-            bannerContainer.style.background = app.bg || RANDOM_BG_PALETTE[app.id % RANDOM_BG_PALETTE.length];
-            if(thumbSource !== '') {
-                bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">`;
-            } else {
-                bannerContainer.innerHTML = `<span class="card-banner-fallback">${escapeHTML(app.icon || '')}</span>`;
+            if (bannerContainer) {
+                bannerContainer.style.background = app.bg || RANDOM_BG_PALETTE[app.id % RANDOM_BG_PALETTE.length];
+                if(thumbSource !== '') {
+                    bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">`;
+                } else {
+                    bannerContainer.innerHTML = `<span class="card-banner-fallback">${escapeHTML(app.icon || '')}</span>`;
+                }
             }
             
             document.getElementById('app-modal').classList.remove('hidden-view');
@@ -1201,25 +1197,34 @@
 
                 saveState(); 
                 
-                if(app.isDemo || (app.github && app.github.toLowerCase().includes('.html'))) {
-                    document.getElementById('app-modal').classList.add('hidden-view');
-                    document.getElementById('iframe-modal-title').innerText = app.name;
-                    setSelectRating(5, 'header-star-box');
-                    const iframe = document.getElementById('iframe-content');
+                const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
+
+                if(isDemoType) {
+                    closeModal();
                     
+                    const elIframeTitle = document.getElementById('iframe-modal-title');
+                    if(elIframeTitle) elIframeTitle.innerText = app.name || '';
+                    setSelectRating(5, 'header-star-box');
+                    
+                    const iframe = document.getElementById('iframe-content');
                     const fileContent = await getFileFromIDB(app.id);
                     
-                    if(fileContent) { 
-                        iframe.removeAttribute('src'); 
-                        const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
-                        iframe.src = URL.createObjectURL(blob);
+                    if(iframe) {
+                        if(fileContent) { 
+                            iframe.removeAttribute('src'); 
+                            const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
+                            iframe.src = URL.createObjectURL(blob);
+                        }
+                        else if(app.htmlContent) { 
+                            iframe.removeAttribute('src'); 
+                            const blob = new Blob([app.htmlContent], { type: 'text/html;charset=utf-8' });
+                            iframe.src = URL.createObjectURL(blob);
+                        }
+                        else { 
+                            iframe.removeAttribute('srcdoc'); 
+                            iframe.src = sanitizeURL(app.github); 
+                        }
                     }
-                    else if(app.htmlContent) { 
-                        iframe.removeAttribute('src'); 
-                        const blob = new Blob([app.htmlContent], { type: 'text/html;charset=utf-8' });
-                        iframe.src = URL.createObjectURL(blob);
-                    }
-                    else { iframe.removeAttribute('srcdoc'); iframe.src = sanitizeURL(app.github); }
                     
                     document.getElementById('iframe-modal').classList.remove('hidden-view');
                 } else {
@@ -1233,8 +1238,10 @@
         function closeIframeModal() { 
             document.getElementById('iframe-modal').classList.add('hidden-view'); 
             const iframe = document.getElementById('iframe-content');
-            iframe.src = ''; 
-            iframe.removeAttribute('srcdoc');
+            if(iframe) {
+                iframe.src = ''; 
+                iframe.removeAttribute('srcdoc');
+            }
             state.activeAppId = null; 
         }
         
