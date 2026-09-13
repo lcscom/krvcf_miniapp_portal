@@ -14,8 +14,8 @@
     
     <script type="module">
         import '@cds/core/icon/register.js';
-        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon, angleIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
-        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon, angleIcon);
+        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon);
     </script>
 
     <style>
@@ -69,8 +69,6 @@
         .btn-modal-close:hover { background: #a31a00; }
         .btn-modal-fullscreen { background: #007cbb; }
         .btn-modal-fullscreen:hover { background: #005a87; }
-        .btn-modal-nav { background: rgba(255,255,255,0.15); transition: background 0.2s; padding: 6px 8px; }
-        .btn-modal-nav:hover { background: rgba(255,255,255,0.3); }
 
         .auth-overlay {
             position: fixed; top:0; left:0; width:100vw; height:100vh;
@@ -93,7 +91,6 @@
             display: flex; gap: 16px; align-items: center; background: #f0f7ff; padding: 12px 16px; border-radius: 6px; border: 1px solid #b3d7ff; flex-wrap: wrap;
         }
 
-        /* 모달 오버레이 스타일 강제 적용 */
         .modal {
             display: flex !important;
             align-items: center;
@@ -119,8 +116,7 @@
             .last-updated-badge { font-size: 10px; padding: 2px 6px; }
 
             #iframe-header-bar { padding: 8px 12px !important; flex-wrap: wrap; gap: 8px; }
-            #iframe-header-bar .title-nav-group { width: 100%; justify-content: space-between; }
-            #iframe-header-bar .modal-title { font-size: 14px !important; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px; }
+            #iframe-header-bar .modal-title { font-size: 14px !important; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
             #iframe-header-bar .rating-wrapper { width: 100%; justify-content: space-between; margin-top: 4px; }
         }
     </style>
@@ -218,22 +214,9 @@
         <div class="modal-dialog" id="iframe-modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
             <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
                 <div class="modal-header" id="iframe-header-bar" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                    <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;" data-i18n="demo_title_modal">Simulator Demo</h3>
                     
-                    <div class="title-nav-group" style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                        <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;" data-i18n="demo_title_modal">Simulator Demo</h3>
-                        
-                        <!-- 🎯 네비게이션 좌/우 화살표 버튼 -->
-                        <div style="display: flex; gap: 6px;">
-                            <button type="button" class="btn-modal-action btn-modal-nav" onclick="navigateDemo(-1)" data-i18n-title="btn_prev" title="이전 앱">
-                                <cds-icon shape="angle" direction="left" size="sm"></cds-icon>
-                            </button>
-                            <button type="button" class="btn-modal-action btn-modal-nav" onclick="navigateDemo(1)" data-i18n-title="btn_next" title="다음 앱">
-                                <cds-icon shape="angle" direction="right" size="sm"></cds-icon>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="rating-wrapper" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; margin-right: 12px;">
+                    <div class="rating-wrapper" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
                         <span style="font-size: 11px; color: #e0e0e0;" data-i18n="eval_label">평가:</span>
                         <div style="display: flex; gap: 4px; align-items: center;" id="header-star-box">
                             <span onclick="setSelectRating(1, 'header-star-box')" class="star-item" data-val="1">★</span>
@@ -247,7 +230,7 @@
 
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <button type="button" class="btn-modal-action btn-modal-fullscreen" onclick="toggleFullScreen()">
-                            <cds-icon shape="expand" size="sm"></cds-icon> <span data-i18n="btn_fullscreen" class="hide-mobile">전체화면</span>
+                            <cds-icon shape="expand" size="sm"></cds-icon> <span data-i18n="btn_fullscreen">전체화면</span>
                         </button>
                         <button type="button" class="btn-modal-action btn-modal-close" onclick="closeIframeModal()">
                             <cds-icon shape="close" size="sm"></cds-icon> <span data-i18n="btn_close">닫기</span>
@@ -390,7 +373,7 @@
 
                                 <div class="clr-form-control clr-row">
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_email">Author Email</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="email" id="form-email" class="clr-input" data-i18n-placeholder="placeholder_email" placeholder="user@company.com" required style="width: 100%;"></div></div>
+                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="email" id="form-email" class="clr-input" placeholder="user@company.com" required style="width: 100%;"></div></div>
                                 </div>
 
                                 <div class="clr-form-control clr-row" id="url-input-group">
@@ -730,7 +713,7 @@
             ko: {
                 brand: "KR VCF Mini App Marketplace", nav_catalog: "카탈로그", nav_demoroom: "데모 룸", nav_submit: "앱 신청", nav_myapps: "마이 워크스페이스", nav_admin: "관리자 콘솔",
                 btn_share: "공유하기", btn_close: "닫기", btn_launch: "앱 실행", btn_upload: "파일 선택", btn_preview: "미리보기",
-                btn_fullscreen: "전체화면", btn_submit_rating: "등록", btn_cancel: "취소", btn_login: "로그인", btn_prev: "이전 앱", btn_next: "다음 앱",
+                btn_fullscreen: "전체화면", btn_submit_rating: "등록", btn_cancel: "취소", btn_login: "로그인",
                 cat_title: "미니 앱 카탈로그", demo_title: "시뮬레이터 데모 룸", demo_desc: "클릭 시 전체화면 모달로 즉시 실행되는 HTML 시뮬레이터들입니다.",
                 sort_pop: "인기순 (실행순)", sort_rating: "평점 높은순", sort_new: "최신 등록순", sort_name: "이름순 (A-Z)", cat_all: "전체 카테고리", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
@@ -754,7 +737,7 @@
             en: {
                 brand: "KR VCF Mini App Marketplace", nav_catalog: "Catalog", nav_demoroom: "Demo Room", nav_submit: "Submit App", nav_myapps: "My Workspace", nav_admin: "Admin Console",
                 btn_share: "Share", btn_close: "Close", btn_launch: "Launch App", btn_upload: "Choose File", btn_preview: "Preview",
-                btn_fullscreen: "Fullscreen", btn_submit_rating: "Submit", btn_cancel: "Cancel", btn_login: "Login", btn_prev: "Previous App", btn_next: "Next App",
+                btn_fullscreen: "Fullscreen", btn_submit_rating: "Submit", btn_cancel: "Cancel", btn_login: "Login",
                 cat_title: "Mini App Catalog", demo_title: "Simulator Demo Room", demo_desc: "Attached HTML simulators that run instantly inside a full-screen modal.",
                 sort_pop: "Popular (Most Runs)", sort_rating: "Highest Rating", sort_new: "Newest First", sort_name: "Name (A-Z)", cat_all: "All Categories", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
@@ -785,7 +768,6 @@
             document.getElementById('lang-display').innerText = currentLang === 'ko' ? 'EN' : 'KO';
             document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n')); });
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
-            document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.getAttribute('data-i18n-title')); });
             renderCatalog(); renderDemoRoom(); renderMyApps();
             if (isAdminAuthenticated) renderAdminDashboard();
         }
@@ -965,17 +947,13 @@
         // 🔥 모달 전체화면 전환 함수
         function toggleFullScreen() {
             const iframeModalBody = document.getElementById('iframe-modal-body');
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                if(iframeModalBody.requestFullscreen) {
-                    iframeModalBody.requestFullscreen().catch(err => console.warn(err));
-                } else if(iframeModalBody.webkitRequestFullscreen) {
-                    iframeModalBody.webkitRequestFullscreen();
-                }
+            if (!document.fullscreenElement) {
+                iframeModalBody.requestFullscreen().catch(err => {
+                    console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+                });
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
                 }
             }
         }
@@ -1205,7 +1183,7 @@
         }
 
         async function handleFormSubmit(e) {
-            if(e) e.preventDefault();
+            if (e) e.preventDefault();
             const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
             const isDemo = selectedType === 'demoroom';
             let targetUrl = document.getElementById('form-github')?.value || '';
@@ -1302,30 +1280,6 @@
             await launchApp();
         }
 
-        // 🎯 방향키(좌/우 버튼) 누를 때 데모 앱 순환 이동 함수
-        async function navigateDemo(direction) {
-            let demoApps = state.apps.filter(app => app.status === 'approved' && (app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'))));
-            demoApps.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // 최신순 정렬 기준
-
-            const currentIndex = demoApps.findIndex(a => a.id === state.activeAppId);
-            if (currentIndex === -1) return;
-
-            let nextIndex = currentIndex + direction;
-            if (nextIndex < 0) nextIndex = demoApps.length - 1; // 첫 앱에서 이전 누르면 마지막으로
-            if (nextIndex >= demoApps.length) nextIndex = 0;    // 마지막 앱에서 다음 누르면 처음으로
-
-            state.activeAppId = demoApps[nextIndex].id;
-            
-            const iframe = document.getElementById('iframe-content');
-            if(iframe) {
-                if(iframe.src.startsWith('blob:')) URL.revokeObjectURL(iframe.src);
-                iframe.src = ''; 
-                iframe.removeAttribute('srcdoc');
-            }
-
-            await launchApp();
-        }
-
         async function launchApp() {
             const index = state.apps.findIndex(a => a.id === state.activeAppId);
             if (index > -1) {
@@ -1402,9 +1356,6 @@
                 iframe.removeAttribute('srcdoc');
             }
             state.activeAppId = null; 
-            if (document.fullscreenElement) {
-                document.exitFullscreen().catch(()=>{});
-            }
         }
         
         function shareApp() {
