@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <title>KR VCF Mini App Marketplace</title>
     <meta name="description" content="사내 클라우드 인프라 관리를 위한 미니 앱을 공유하고 실행하세요.">
@@ -56,15 +56,28 @@
         }
         .btn-modal-close:hover { background: #a31a00; }
 
+        /*📱 모바일 전용 반응형 스타일 강화 */
         @media (max-width: 768px) {
-            .header-6 { padding: 0 12px; }
-            .header-6 .branding .title { display: none; }
-            .view-wrapper { padding: 16px; }
+            .header-6 { padding: 0 12px; height: auto; min-height: 56px; flex-wrap: wrap; }
+            .header-6 .branding { margin-right: auto; }
+            .header-6 .branding .title { font-size: 14px; }
+            .header-nav { display: flex; width: 100%; overflow-x: auto; scrollbar-width: none; border-top: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
+            .header-nav::-webkit-scrollbar { display: none; }
+            .header-nav .nav-link { padding: 6px 12px; font-size: 13px; white-space: nowrap; }
+            .header-actions { position: absolute; top: 12px; right: 12px; }
+            
+            .view-wrapper { padding: 12px; }
             .catalog-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
             .filter-control-panel { padding: 12px; }
-            .search-and-filter { width: 100%; flex-wrap: wrap; gap: 8px; }
-            .search-and-filter > div, .search-and-filter .clr-select-wrapper, .search-and-filter .clr-select { width: 100% !important; flex: 1 1 100%; }
-            #toast-container { top: unset; bottom: 20px; right: 10px; width: calc(100% - 20px); }
+            .search-and-filter { width: 100%; flex-direction: column; gap: 8px; }
+            .search-and-filter > div, .search-and-filter .clr-select-wrapper, .search-and-filter .clr-select, .search-and-filter .search { width: 100% !important; flex: 1 1 100%; }
+            
+            /* 시뮬레이터 풀화면 상단 헤더 반응형 개편 */
+            #iframe-modal .modal-header { flex-wrap: wrap; gap: 8px; padding: 8px 12px !important; }
+            #iframe-modal .modal-header > div { flex-wrap: wrap; }
+            .star-item { font-size: 18px; }
+            
+            #toast-container { top: unset; bottom: 16px; right: 12px; left: 12px; width: calc(100% - 24px); }
         }
     </style>
 </head>
@@ -96,7 +109,6 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <div>
                             <span class="label label-info" id="modal-category-badge">Category</span>
-                            <span class="label label-warning hidden-view" id="modal-demo-badge">Simulator</span>
                         </div>
                         <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span>명)</span>
                     </div>
@@ -128,7 +140,7 @@
                     <div>
                         <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
                         <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
-                            <cds-icon shape="pop-out" style="margin-right: 4px;" id="modal-launch-icon"></cds-icon> <span data-i18n="btn_launch" id="modal-launch-text">앱 실행</span>
+                            <cds-icon shape="pop-out" style="margin-right: 4px;"></cds-icon> <span data-i18n="btn_launch">앱 실행</span>
                         </button>
                     </div>
                 </div>
@@ -142,24 +154,23 @@
         <div class="modal-dialog" id="iframe-modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
             <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
                 <div class="modal-header" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-                    <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 16px;">Simulator Demo</h3>
+                    <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;">Simulator Demo</h3>
                     
-                    <div style="display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.1); padding: 4px 16px; border-radius: 20px;">
-                        <span style="font-size: 12px; color: #e0e0e0;">시뮬레이터 평가:</span>
-                        <div style="display: flex; gap: 4px; align-items: center;" id="header-star-box">
+                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
+                        <span style="font-size: 11px; color: #e0e0e0;">평가:</span>
+                        <div style="display: flex; gap: 2px; align-items: center;" id="header-star-box">
                             <span onclick="setSelectRating(1, 'header-star-box')" class="star-item" data-val="1">★</span>
                             <span onclick="setSelectRating(2, 'header-star-box')" class="star-item" data-val="2">★</span>
                             <span onclick="setSelectRating(3, 'header-star-box')" class="star-item" data-val="3">★</span>
                             <span onclick="setSelectRating(4, 'header-star-box')" class="star-item" data-val="4">★</span>
                             <span onclick="setSelectRating(5, 'header-star-box')" class="star-item active" data-val="5">★</span>
                         </div>
-                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 8px; font-size: 11px;" onclick="submitRatingOnly()">별점 등록</button>
+                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 10px;" onclick="submitRatingOnly()">등록</button>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 12px; color: #a0b2c6;">[ESC] 닫기</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
                         <button type="button" class="btn-modal-close" onclick="closeIframeModal()">
-                            <cds-icon shape="close" size="md"></cds-icon> 닫기 (X)
+                            <cds-icon shape="close" size="md"></cds-icon> 닫기
                         </button>
                     </div>
                 </div>
@@ -186,7 +197,6 @@
             <div class="header-actions">
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleLang()" style="color: white; opacity: 0.85;"><cds-icon shape="world"></cds-icon> <span id="lang-display" style="font-weight:bold; margin-left:4px;">EN</span></button>
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleTheme()" style="color: white; opacity: 0.85;"><cds-icon shape="moon" id="theme-icon"></cds-icon></button>
-                <div class="header-nav" style="margin: 0 16px;"><span class="nav-text" style="opacity: 0.9;"><cds-icon shape="user"></cds-icon> <span id="current-user-display">user</span></span></div>
             </div>
         </header>
 
@@ -268,9 +278,9 @@
 
                     <!-- 2. Submit View -->
                     <div id="view-submit" class="hidden-view">
-                        <div style="max-width: 800px; margin: 0 auto; background: var(--cds-global-color-gray-0, #fff); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 32px;">
+                        <div style="max-width: 800px; margin: 0 auto; background: var(--cds-global-color-gray-0, #fff); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 24px;">
                             <h2 style="margin-top: 0; font-weight: 600;" data-i18n="sub_title">새 미니 앱 등록 신청</h2>
-                            <p class="p5" style="color: #666; margin-bottom: 32px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 카탈로그에 반영됩니다.</p>
+                            <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 카탈로그에 반영됩니다.</p>
                             
                             <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
                                 <div class="clr-form-control clr-row">
@@ -496,15 +506,15 @@
         }
 
         const DEFAULT_APPS = [
-            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: '#0065AB', status: 'approved', launchCount: 142, rating: 4.8, ratingCount: 12, createdAt: Date.now() - 100000000, isDemo: false },
-            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'S', bg: '#60B515', status: 'approved', launchCount: 210, rating: 4.9, ratingCount: 18, createdAt: Date.now() - 90000000, isDemo: false },
-            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: '#F28F46', status: 'approved', launchCount: 89, rating: 4.5, ratingCount: 8, createdAt: Date.now() - 50000000, isDemo: false },
-            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: '#8E24AA', status: 'approved', launchCount: 312, rating: 5.0, ratingCount: 29, createdAt: Date.now() - 40000000, isDemo: false },
-            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: '#C92100', status: 'approved', launchCount: 175, rating: 4.7, ratingCount: 15, createdAt: Date.now() - 30000000, isDemo: false },
-            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: '#007CBB', status: 'approved', launchCount: 420, rating: 4.9, ratingCount: 34, createdAt: Date.now() - 25000000, isDemo: false },
-            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: '#004C6D', status: 'approved', launchCount: 198, rating: 4.6, ratingCount: 11, createdAt: Date.now() - 15000000, isDemo: false },
-            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: '#224D5E', status: 'approved', launchCount: 155, rating: 4.8, ratingCount: 9, createdAt: Date.now() - 10000000, isDemo: false },
-            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: '#660092', status: 'approved', launchCount: 315, rating: 5.0, ratingCount: 25, createdAt: Date.now() - 20000000, isDemo: true }
+            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: '#0065AB', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 100000000, isDemo: false },
+            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'S', bg: '#60B515', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 90000000, isDemo: false },
+            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: '#F28F46', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 50000000, isDemo: false },
+            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: '#8E24AA', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 40000000, isDemo: false },
+            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: '#C92100', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 30000000, isDemo: false },
+            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: '#007CBB', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 25000000, isDemo: false },
+            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: '#004C6D', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 15000000, isDemo: false },
+            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: '#224D5E', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 10000000, isDemo: false },
+            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: '#660092', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 20000000, isDemo: true }
         ];
 
         let selectedRating = 5;
@@ -651,8 +661,8 @@
                     }
                     
                     const bannerHTML = thumbSource !== '' 
-                        ? `<img src="${thumbSource}" alt="banner">` 
-                        : `<span class="card-banner-fallback">${escapeHTML(app.icon || 'A')}</span>`;
+                        ? `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">` 
+                        : `<span class="card-banner-fallback">${escapeHTML(app.icon)}</span>`;
                         
                     const clickAction = isDemoTarget ? `runDemoDirectly(${app.id})` : `openAppModal(${app.id})`;
 
@@ -776,69 +786,49 @@
             window.location.hash = 'myapps'; showToast('msg_submit', 'alert-success', 'check-circle'); 
         }
 
-        // 🔧 모달 열기 오류 방지 패치 적용
         function openAppModal(id) {
             const app = state.apps.find(a => a.id === id);
             if (!app) return;
             state.activeAppId = id;
-
-            const modalTitle = document.getElementById('modal-title');
-            const modalAuthor = document.getElementById('modal-author');
-            const modalDesc = document.getElementById('modal-desc');
-            const modalCatBadge = document.getElementById('modal-category-badge');
-            const modalLaunches = document.getElementById('modal-launches');
-            const modalRating = document.getElementById('modal-rating');
-            const modalRatingCount = document.getElementById('modal-rating-count');
-            
-            if(modalTitle) modalTitle.innerText = app.name || '';
-            if(modalAuthor) modalAuthor.innerText = `By. ${app.author || ''}`;
-            if(modalDesc) modalDesc.innerText = app.desc || '';
-            if(modalCatBadge) modalCatBadge.innerText = t('cat_' + getCatKey(app.category));
-            if(modalLaunches) modalLaunches.innerText = app.launchCount || 0;
-            if(modalRating) modalRating.innerText = app.rating ? app.rating.toFixed(1) : '5.0';
-            if(modalRatingCount) modalRatingCount.innerText = app.ratingCount || 1;
+            document.getElementById('modal-title').innerText = app.name || '';
+            document.getElementById('modal-author').innerText = `By. ${app.author || ''}`;
+            document.getElementById('modal-desc').innerText = app.desc || '';
+            document.getElementById('modal-category-badge').innerText = t('cat_' + getCatKey(app.category));
+            document.getElementById('modal-launches').innerText = app.launchCount || 0;
+            document.getElementById('modal-rating').innerText = app.rating ? app.rating.toFixed(1) : '5.0';
+            document.getElementById('modal-rating-count').innerText = app.ratingCount || 1;
             
             setSelectRating(5, 'modal-star-box');
 
-            const demoBadge = document.getElementById('modal-demo-badge');
-            const secText = document.getElementById('modal-security-text');
-
             if(app.isDemo) { 
-                if(demoBadge) demoBadge.classList.remove('hidden-view');
-                if(secText) secText.innerText = t('safe_file');
+                document.getElementById('modal-demo-badge').classList.remove('hidden-view');
+                document.getElementById('modal-security-text').innerText = t('safe_file');
             } else { 
-                if(demoBadge) demoBadge.classList.add('hidden-view');
-                if(secText) secText.innerText = t('safe_url');
+                document.getElementById('modal-demo-badge').classList.add('hidden-view');
+                document.getElementById('modal-security-text').innerText = t('safe_url');
             }
 
             const btnText = document.getElementById('modal-launch-text');
             const btnIcon = document.getElementById('modal-launch-icon');
-            if(btnText) btnText.innerText = t('btn_launch');
-            if(btnIcon) btnIcon.setAttribute('shape', app.isDemo ? 'window-max' : 'pop-out');
+            btnText.innerText = t('btn_launch');
+            btnIcon.setAttribute('shape', app.isDemo ? 'window-max' : 'pop-out');
             
             let thumbSource = '';
             if (app.thumbnail && app.thumbnail.trim() !== '') thumbSource = sanitizeURL(app.thumbnail);
             else if (app.github && !app.isDemo) thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
 
             const bannerContainer = document.getElementById('modal-banner-container');
-            if(bannerContainer) {
-                bannerContainer.style.background = app.bg || '#002538';
-                if(thumbSource !== '') {
-                    bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner">`;
-                } else {
-                    bannerContainer.innerHTML = `<span class="card-banner-fallback">${escapeHTML(app.icon || 'A')}</span>`;
-                }
+            bannerContainer.style.background = app.bg || '#002538';
+            if(thumbSource !== '') {
+                bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">`;
+            } else {
+                bannerContainer.innerHTML = `<span class="card-banner-fallback">${escapeHTML(app.icon || '')}</span>`;
             }
             
-            const modalEl = document.getElementById('app-modal');
-            if(modalEl) modalEl.classList.remove('hidden-view');
+            document.getElementById('app-modal').classList.remove('hidden-view');
         }
 
-        function closeModal() { 
-            const modalEl = document.getElementById('app-modal');
-            if(modalEl) modalEl.classList.add('hidden-view'); 
-            state.activeAppId = null; 
-        }
+        function closeModal() { document.getElementById('app-modal').classList.add('hidden-view'); state.activeAppId = null; }
 
         async function runDemoDirectly(id) {
             state.activeAppId = id;
@@ -861,9 +851,8 @@
                 saveState(); 
                 
                 if(app.isDemo) {
-                    closeModal();
-                    const iframeTitle = document.getElementById('iframe-modal-title');
-                    if(iframeTitle) iframeTitle.innerText = app.name;
+                    document.getElementById('app-modal').classList.add('hidden-view');
+                    document.getElementById('iframe-modal-title').innerText = app.name;
                     setSelectRating(5, 'header-star-box');
                     const iframe = document.getElementById('iframe-content');
                     
@@ -881,8 +870,7 @@
                     }
                     else { iframe.removeAttribute('srcdoc'); iframe.src = sanitizeURL(app.github); }
                     
-                    const iframeModal = document.getElementById('iframe-modal');
-                    if(iframeModal) iframeModal.classList.remove('hidden-view');
+                    document.getElementById('iframe-modal').classList.remove('hidden-view');
                 } else {
                     const safeUrl = sanitizeURL(app.github);
                     if(safeUrl === '#') { showToast('msg_sec_err', 'alert-danger', 'error-standard'); return; }
@@ -894,13 +882,10 @@
         }
 
         function closeIframeModal() { 
-            const iframeModal = document.getElementById('iframe-modal');
-            if(iframeModal) iframeModal.classList.add('hidden-view'); 
+            document.getElementById('iframe-modal').classList.add('hidden-view'); 
             const iframe = document.getElementById('iframe-content');
-            if(iframe) {
-                iframe.src = ''; 
-                iframe.removeAttribute('srcdoc');
-            }
+            iframe.src = ''; 
+            iframe.removeAttribute('srcdoc');
             state.activeAppId = null; 
         }
         
@@ -913,11 +898,9 @@
             else navigator.clipboard.writeText(shareText).then(() => showToast('msg_copied', 'alert-info', 'check-circle'));
         }
 
-        // 초기화 시 카탈로그 화면 그리기
         document.addEventListener('DOMContentLoaded', () => { 
             applyTheme(); applyI18n();
-            const userDisp = document.getElementById('current-user-display');
-            if(userDisp) userDisp.innerText = state.currentUser;
+            document.getElementById('current-user-display').innerText = state.currentUser;
             handleRouting();
             renderCatalog();
             logAccess('index.html (Marketplace Catalog)');
