@@ -10,7 +10,7 @@
     "desc": "Daily vCenter Event Checker (Powershell)",
     "category": "Compute",
     "author": "lcscom",
-    "status": "pending",
+    "status": "approved",
     "icon": "D",
     "bg": "linear-gradient(135deg, #224D5E 0%, #007CBB 100%)",
     "launchCount": 0,
