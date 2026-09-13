@@ -1,5 +1,24 @@
 [
   {
+    "id": 1789292591434,
+    "name": "Daily vCenter Event Checker (Powershell)",
+    "email": "lcscom@kakao.com",
+    "github": "https://github.com/lcscom/krvcf_daily_vc_check_script",
+    "fileName": "",
+    "isDemo": false,
+    "thumbnail": "",
+    "desc": "Daily vCenter Event Checker (Powershell)",
+    "category": "Compute",
+    "author": "lcscom",
+    "status": "pending",
+    "icon": "D",
+    "bg": "linear-gradient(135deg, #224D5E 0%, #007CBB 100%)",
+    "launchCount": 0,
+    "rating": 5,
+    "ratingCount": 1,
+    "createdAt": 1789292591434
+  },
+  {
     "id": 1789292236675,
     "name": "PAIS iSIM",
     "email": "lcscom@kakao.com",
@@ -13,9 +32,9 @@
     "status": "approved",
     "icon": "P",
     "bg": "linear-gradient(135deg, #002538 0%, #007cbb 100%)",
-    "launchCount": 1,
+    "launchCount": 2,
     "rating": 5,
-    "ratingCount": 2,
+    "ratingCount": 3,
     "createdAt": 1789292236780
   }
 ]
