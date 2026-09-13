@@ -438,7 +438,7 @@
                         </div>
 
                         <div style="background: #e3f2fd; border-left: 4px solid #007cbb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 13px; color: #004c6d;">
-                            🚀 <strong>Remote 데이터 실시간 불러오기 적용 중:</strong> 모든 사용자는 접속 시 항상 클라우드(GitHub Raw/Bin)의 최신 <code>apps.json</code>을 직접 불러옵니다.
+                            🚀 <strong>JSONBin 클라우드 DB 동기화:</strong> 모든 방문자는 접속 시 클라우드 DB에서 실시간 최신 <code>apps.json</code>을 직접 로드합니다.
                         </div>
                         
                         <div class="clr-row" style="margin-bottom: 32px;">
@@ -552,9 +552,11 @@
         const GITHUB_REPO_OWNER = 'lcscom';
         const GITHUB_REPO_NAME = 'krvcf_miniapp_portal';
         const GITHUB_FILE_PATH = 'apps.json';
-
-        // 🔗 GitHub Raw 최신 주소 (캐시 방지 파라미터 적용)
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
+
+        // ⚡ JSONBin.io 하드코딩 설정
+        const JSONBIN_BIN_ID = '6aa672f1ac6210605ac76546'; // <-- 본인의 Bin ID를 직접 하드코딩 입력
+        const JSONBIN_API_KEY = '$2a$10$aJW3V0ks/99Im2eSZBRqnOJ9sRHqgsNXxQ/5gFHyzfOUT1XR6BkAe'; // <-- 본인의 Master API Key를 직접 하드코딩 입력
 
         let isAdminAuthenticated = false;
 
@@ -712,30 +714,9 @@
             apps: []
         };
 
-        // 🕒 GitHub 커밋 변경 시각 불러오기
         async function fetchAppsLastUpdatedTime() {
             const displayEl = document.getElementById('apps-updated-time');
             if(!displayEl) return;
-
-            try {
-                const apiCommitUrl = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/commits?path=${GITHUB_FILE_PATH}&page=1&per_page=1`;
-                const response = await fetch(apiCommitUrl);
-                
-                if (response.ok) {
-                    const commits = await response.json();
-                    if (commits && commits.length > 0) {
-                        const lastCommitDate = new Date(commits[0].commit.committer.date);
-                        const formattedTime = lastCommitDate.toLocaleString('ko-KR', {
-                            year: 'numeric', month: '2-digit', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', hour12: false
-                        });
-                        displayEl.innerText = formattedTime;
-                        return;
-                    }
-                }
-            } catch (err) {
-                console.warn('Commit time fetch skipped', err);
-            }
 
             if (state.apps && state.apps.length > 0) {
                 const maxTime = Math.max(...state.apps.map(a => a.createdAt || 0));
@@ -750,49 +731,61 @@
             displayEl.innerText = new Date().toLocaleDateString('ko-KR');
         }
 
-        // 🚀 브라우저에 구애받지 않고 무조건 최신 Remote apps.json 직접 로드
+        // 🌐 무조건 1순위로 JSONBin 클라우드 DB에서 실시간 apps.json 가져오기
         async function loadAppsData() {
             let fetchedData = null;
-            try {
-                const response = await fetch(GITHUB_RAW_APPS_JSON_URL + '?nocache=' + Date.now(), {
-                    cache: 'no-store',
-                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
-                });
-                
-                if (response.ok) {
-                    fetchedData = await response.json();
-                }
-            } catch (err) {
-                console.warn('Raw GitHub fetch error', err);
+
+            // 1) JSONBin.io API 호출
+            if (JSONBIN_BIN_ID && JSONBIN_API_KEY) {
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+                    });
+                    if (res.ok) {
+                        const binJson = await res.json();
+                        fetchedData = binJson.record;
+                    }
+                } catch(e) { console.warn('JSONBin load error', e); }
             }
 
-            // Remote 서버 로드가 정상 성공했을 경우 원본으로 사용
+            // 2) JSONBin 미설정 시 GitHub Raw 서브 폴백
+            if (!fetchedData) {
+                try {
+                    const res = await fetch(GITHUB_RAW_APPS_JSON_URL + '?nocache=' + Date.now(), { cache: 'no-store' });
+                    if (res.ok) { fetchedData = await res.json(); }
+                } catch(e) {}
+            }
+
+            // 3) 가져온 원동력(Remote) 데이터를 100% 기준으로 화면 출력
             if (fetchedData && Array.isArray(fetchedData)) {
-                // 현재 접속 유저가 로컬에서 '신청'하여 아직 승인 대기 중인 본인 제출 건만 병합
-                const localData = localStorage.getItem('vmapp_data_final');
-                if (localData) {
-                    try {
-                        const parsedLocal = JSON.parse(localData);
-                        const userPendingApps = parsedLocal.filter(a => a.status === 'pending' && !fetchedData.some(remote => remote.id === a.id));
-                        state.apps = [...fetchedData, ...userPendingApps];
-                    } catch(e) {
-                        state.apps = fetchedData;
-                    }
-                } else {
-                    state.apps = fetchedData;
-                }
+                state.apps = fetchedData;
             } else {
-                // 원격지 연결에 완벽히 실패했을 때만 기존 로컬 캐시 폴백 사용
                 const localData = localStorage.getItem('vmapp_data_final');
-                if (localData) { 
-                    try { state.apps = JSON.parse(localData); } catch(e) {} 
-                }
+                if (localData) { try { state.apps = JSON.parse(localData); } catch(e) {} }
             }
             
             renderCatalog(); 
             renderDemoRoom(); 
             renderMyApps();
             fetchAppsLastUpdatedTime();
+        }
+
+        // 🌐 데이터 수정/삭제 시 JSONBin.io 클라우드 DB에 즉시 동기화
+        async function syncToRemoteDB() {
+            if (JSONBIN_BIN_ID && JSONBIN_API_KEY) {
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': JSONBIN_API_KEY
+                        },
+                        body: JSON.stringify(state.apps)
+                    });
+                } catch(e) { console.warn('JSONBin update error', e); }
+            }
+
+            await commitAppsJsonToGithub();
         }
 
         async function commitAppsJsonToGithub() {
@@ -839,11 +832,9 @@
                 localStorage.setItem('vmapp_data_final', JSON.stringify(state.apps));
                 renderCatalog(); renderDemoRoom(); renderAdminDashboard();
 
-                const isCommitted = await commitAppsJsonToGithub();
-                if (isCommitted) {
-                    showToast('GitHub apps.json에 실시간 반영 완료!', 'alert-success');
-                    fetchAppsLastUpdatedTime();
-                }
+                await syncToRemoteDB();
+                showToast('클라우드 DB에 실시간 반영 완료!', 'alert-success');
+                fetchAppsLastUpdatedTime();
             } catch (e) {
                 showToast('msg_file_size', 'alert-danger', 'error-standard');
             }
@@ -851,7 +842,7 @@
 
         function promptGithubToken() {
             const currentToken = localStorage.getItem('vmapp_github_token') || '';
-            const inputToken = prompt('GitHub Personal Access Token (PAT)을 입력하세요:\n(입력 시 승인/삭제 내역이 GitHub apps.json에 자동 커밋됩니다)', currentToken);
+            const inputToken = prompt('GitHub Personal Access Token (PAT)을 입력하세요:', currentToken);
             if (inputToken !== null) {
                 localStorage.setItem('vmapp_github_token', inputToken.trim());
                 showToast('GitHub 토큰이 등록되었습니다.', 'alert-success');
