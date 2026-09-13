@@ -438,7 +438,7 @@
                         </div>
 
                         <div style="background: #e3f2fd; border-left: 4px solid #007cbb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 13px; color: #004c6d;">
-                            🚀 <strong>GitHub Raw 직접 로딩 적용 중:</strong> 마켓플레이스는 Vercel 캐시를 우회하여 GitHub Raw 주소에서 최신 <code>apps.json</code> 데이터를 실시간으로 동적 로드합니다.
+                            🚀 <strong>JSONBin / GitHub 실시간 동기화:</strong> 마켓플레이스는 Vercel 캐시를 무시하고 실시간 데이터베이스에서 최신 <code>apps.json</code> 데이터를 실시간 동적 로드합니다.
                         </div>
                         
                         <div class="clr-row" style="margin-bottom: 32px;">
@@ -553,6 +553,7 @@
         const GITHUB_REPO_NAME = 'krvcf_miniapp_portal';
         const GITHUB_FILE_PATH = 'apps.json';
 
+        // 🔗 GitHub Raw 직접 주소 (Cache-Busting 탑재)
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
         let isAdminAuthenticated = false;
@@ -749,7 +750,7 @@
             displayEl.innerText = new Date().toLocaleDateString('ko-KR');
         }
 
-        // 🚀 apps.json 동적 로드
+        // 🚀 GitHub Raw 주소에서 캐시 없이(no-store) 최신 apps.json 동적 로드
         async function loadAppsData() {
             try {
                 const response = await fetch(GITHUB_RAW_APPS_JSON_URL + '?t=' + Date.now(), {
