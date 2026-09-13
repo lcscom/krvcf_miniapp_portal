@@ -29,6 +29,7 @@
         }
         .btn-modal-close:hover { background: #a31a00; }
 
+        /* 인증 오버레이 */
         .auth-overlay {
             position: fixed; top:0; left:0; width:100vw; height:100vh;
             background: rgba(0, 37, 56, 0.96); z-index: 3000;
@@ -46,7 +47,7 @@
 </head>
 <body class="cds-theme-light">
 
-    <!-- 🔑 SHA-256 호환 및 다중 이중 검증 관리자 인증 오버레이 -->
+    <!-- 🔑 관리자 로그인 인증 모달 -->
     <div id="auth-overlay" class="auth-overlay">
         <div class="auth-card">
             <cds-icon shape="lock" size="xl" style="color: #007cbb; margin-bottom: 12px;"></cds-icon>
@@ -217,39 +218,39 @@
         const DB_VERSION = 1;
         const STORE_NAME = 'htmlFiles';
 
-        // 🔒 'Dlcjdtn01!' 비밀번호 평문 및 SHA-256 상수 정의
-        const RAW_PASSWORD = 'Dlcjdtn01!';
-        const HARDCODED_SHA256_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
+        // 🔒 비밀번호 설정값 (Dlcjdtn01!) 및 SHA-256 해시값
+        const TARGET_PASS = 'Dlcjdtn01!';
+        const TARGET_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
 
-        // 🔒 안전한 SHA-256 해시 인코딩 함수
-        async function sha256(message) {
+        // SHA-256 계산 유틸리티
+        async function getSha256Hash(text) {
             try {
-                const msgBuffer = new TextEncoder().encode(message);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                const encoder = new TextEncoder();
+                const data = encoder.encode(text);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
                 const hashArray = Array.from(new Uint8Array(hashBuffer));
                 return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            } catch (err) {
+            } catch(e) {
                 return '';
             }
         }
 
-        // 🔑 다중 이중 검증 (평문 직비교 + SHA-256 해시 비교)
-        async function verifyAdminPass(e) {
-            e.preventDefault();
-            const inputPass = document.getElementById('admin-pass-input').value.trim();
+        // ⚡ 직관적인 인증 검증 함수
+        async function verifyAdminPass(event) {
+            if(event) event.preventDefault();
+            const inputVal = (document.getElementById('admin-pass-input').value || '').trim();
             
-            // 1차: 평문 비밀번호 직비교
-            if (inputPass === RAW_PASSWORD) {
-                document.getElementById('auth-overlay').classList.add('hidden-view');
-                showToast('관리자 인증에 성공하였습니다.');
+            if(!inputVal) {
+                alert('비밀번호를 입력해 주세요.');
                 return;
             }
 
-            // 2차: SHA-256 해시 계산 비교
-            const inputHash = await sha256(inputPass);
-            if (inputHash && inputHash.toLowerCase() === HARDCODED_SHA256_HASH.toLowerCase()) {
+            const inputHash = await getSha256Hash(inputVal);
+
+            // 평문 일치 혹은 SHA-256 해시 일치 시 인증 승인
+            if (inputVal === TARGET_PASS || inputHash.toLowerCase() === TARGET_HASH.toLowerCase()) {
                 document.getElementById('auth-overlay').classList.add('hidden-view');
-                showToast('관리자 인증에 성공하였습니다.');
+                showToast('관리자 인증에 성공하였습니다.', 'alert-success');
             } else {
                 alert('비밀번호가 올바르지 않습니다.');
             }
