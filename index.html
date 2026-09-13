@@ -14,8 +14,8 @@
     
     <script type="module">
         import '@cds/core/icon/register.js';
-        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, calendarIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
-        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, calendarIcon);
+        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon);
     </script>
 
     <style>
@@ -54,7 +54,7 @@
         @keyframes pulseNew { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         .filter-control-panel { background-color: var(--cds-global-color-gray-50, #f7f9fa); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; }
-        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 12px; }
         .rating-star { color: #f5a623; margin-right: 2px; }
 
         .star-item { cursor: pointer; font-size: 20px; color: #d3d3d3; transition: color 0.15s ease; user-select: none; }
@@ -66,10 +66,19 @@
         }
         .btn-modal-close:hover { background: #a31a00; }
 
+        .auth-overlay {
+            position: fixed; top:0; left:0; width:100vw; height:100vh;
+            background: rgba(0, 37, 56, 0.96); z-index: 3000;
+            display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box;
+        }
+        .auth-card {
+            background: white; border-radius: 8px; padding: 28px; width: 100%; max-width: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;
+        }
+
         @media (max-width: 768px) {
             .header-6 { padding: 0 8px; height: auto; flex-wrap: wrap; }
             .header-6 .branding { margin-right: auto; padding: 8px 0; }
-            .header-6 .branding .title { display: inline-block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+            .header-6 .branding .title { display: inline-block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
             .header-nav { display: flex; width: 100%; overflow-x: auto; white-space: nowrap; border-top: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
             .header-nav .nav-link { padding: 8px 12px; font-size: 13px; }
             .header-actions { position: absolute; top: 6px; right: 8px; }
@@ -102,6 +111,26 @@
         </div>
     </div>
 
+    <!-- 🔑 SHA-256 관리자 비밀번호 인증 오버레이 -->
+    <div id="auth-overlay" class="auth-overlay hidden-view">
+        <div class="auth-card">
+            <cds-icon shape="lock" size="xl" style="color: #007cbb; margin-bottom: 12px;"></cds-icon>
+            <h3 style="margin:0 0 8px 0; font-weight:700;">관리자 인증</h3>
+            <p style="font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5;">VCF 콘솔 접근을 위해 관리자 비밀번호를 입력해 주세요.</p>
+            <form onsubmit="verifyAdminPass(event)">
+                <div class="clr-form-control" style="margin-bottom: 16px;">
+                    <div class="clr-input-wrapper">
+                        <input type="password" id="admin-pass-input" class="clr-input" placeholder="비밀번호 입력..." required style="width: 100%; text-align: center;">
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn btn-outline" style="flex:1; margin:0;" onclick="cancelAdminAuth()">취소</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1; margin:0;">로그인</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- App Detail Modal -->
     <div class="modal hidden-view" id="app-modal">
         <div class="modal-dialog" role="dialog" aria-hidden="true">
@@ -119,10 +148,7 @@
                         <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span>명)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
-                        <div>
-                            <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
-                            <span class="p8" style="color: #888; font-size: 11px;" id="modal-updated-at"></span>
-                        </div>
+                        <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
                         <span class="p7" style="color: #737373; display: flex; align-items: center; gap: 4px;">
                             <cds-icon shape="line-chart" size="sm"></cds-icon> <span id="modal-launches">0</span> <span data-i18n="runs">runs</span>
                         </span>
@@ -202,6 +228,7 @@
                 <a href="#demoroom" class="nav-link" id="nav-demoroom"><span class="nav-text" data-i18n="nav_demoroom">데모 룸</span></a>
                 <a href="#submit" class="nav-link" id="nav-submit"><span class="nav-text" data-i18n="nav_submit">앱 신청</span></a>
                 <a href="#myapps" class="nav-link" id="nav-myapps"><span class="nav-text" data-i18n="nav_myapps">마이 워크스페이스</span></a>
+                <a href="#admin" class="nav-link" id="nav-admin" style="color: #ffca28;"><cds-icon shape="administrator"></cds-icon> <span class="nav-text">관리자 콘솔</span></a>
             </div>
             <div class="header-actions">
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleLang()" style="color: white; opacity: 0.85;"><cds-icon shape="world"></cds-icon> <span id="lang-display" style="font-weight:bold; margin-left:2px;">EN</span></button>
@@ -389,6 +416,111 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- 4. 🎛️ 통합 관리자 대시보드 뷰 (Admin View) -->
+                    <div id="view-admin" class="hidden-view">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                            <h2 style="margin: 0; font-weight: 600;">통합 관리자 대시보드</h2>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-sm btn-warning-outline" onclick="resetAllStats()"><cds-icon shape="refresh"></cds-icon> 통계 전체 초기화</button>
+                                <button class="btn btn-sm btn-outline" onclick="exportData()"><cds-icon shape="download-cloud"></cds-icon> 백업</button>
+                                <label class="btn btn-sm btn-primary" style="margin: 0; cursor: pointer;">
+                                    <cds-icon shape="upload-cloud"></cds-icon> 데이터 복원
+                                    <input type="file" style="display:none" accept=".json" onchange="importData(event)">
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="clr-row" style="margin-bottom: 32px;">
+                            <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+                                <div class="card" style="margin-top: 0; background-color: #e8f4fa; border: 1px solid #007cbb;">
+                                    <div class="card-block" style="text-align: center;">
+                                        <h1 id="stat-approved" style="font-size: 2.2rem; margin: 0; color: #007cbb; font-weight: 700;">0</h1>
+                                        <p class="card-text" style="font-weight: 600;">승인된 전체 앱</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+                                <div class="card" style="margin-top: 0; background-color: #fcf2e3; border: 1px solid #e17c00;">
+                                    <div class="card-block" style="text-align: center;">
+                                        <h1 id="stat-pending" style="font-size: 2.2rem; margin: 0; color: #e17c00; font-weight: 700;">0</h1>
+                                        <p class="card-text" style="font-weight: 600;">대기 중인 요청</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+                                <div class="card" style="margin-top: 0; background-color: #eaf5e1; border: 1px solid #60B515;">
+                                    <div class="card-block" style="text-align: center;">
+                                        <h1 id="stat-launches" style="font-size: 2.2rem; margin: 0; color: #60B515; font-weight: 700;">0</h1>
+                                        <p class="card-text" style="font-weight: 600;">누적 앱 실행 횟수</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+                                <div class="card" style="margin-top: 0; background-color: #f3e5f5; border: 1px solid #8e24aa;">
+                                    <div class="card-block" style="text-align: center;">
+                                        <h1 id="stat-visitors" style="font-size: 2.2rem; margin: 0; color: #8e24aa; font-weight: 700;">0</h1>
+                                        <p class="card-text" style="font-weight: 600;">총 방문 유저 로그 수</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: 12px; font-weight: 600;">앱 등록 대기열 (Pending Queue)</h3>
+                        <div id="admin-table-container" class="table-responsive hidden-view" style="margin-bottom: 24px;">
+                            <table class="table table-compact">
+                                <thead>
+                                    <tr>
+                                        <th class="left">App Name</th>
+                                        <th class="left">Thumbnail / Source</th>
+                                        <th class="left">Type / Category</th>
+                                        <th class="left">Author (Email)</th>
+                                        <th class="right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div id="admin-empty" class="hidden-view" style="text-align: center; padding: 40px; color: #737373; background: white; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
+                            대기 중인 신규 앱 요청이 없습니다.
+                        </div>
+
+                        <h3 style="margin-top: 32px; margin-bottom: 12px; font-weight: 600;">전체 앱 관리 (Manage All Apps)</h3>
+                        <div class="table-responsive" style="margin-bottom: 32px;">
+                            <table class="table table-compact">
+                                <thead>
+                                    <tr>
+                                        <th class="left">App Name</th>
+                                        <th class="left">Type / Category</th>
+                                        <th class="left">Rating (Count)</th>
+                                        <th class="left">Author</th>
+                                        <th class="left">Status</th>
+                                        <th class="right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="all-apps-table-body"></tbody>
+                            </table>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 12px;">
+                            <h3 style="margin: 0; font-weight: 600;"><cds-icon shape="users"></cds-icon> 접속 유저 및 IP 기록 로그 (User Traffic Logs)</h3>
+                            <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100);" onclick="clearLogs()"><cds-icon shape="trash"></cds-icon> 로그 비우기</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-compact">
+                                <thead>
+                                    <tr>
+                                        <th class="left">접속 일시 (Timestamp)</th>
+                                        <th class="left">IP 주소 (IP Address)</th>
+                                        <th class="left">접속 페이지</th>
+                                        <th class="left">User Agent / 브라우저 정보</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="access-log-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
 
                 <footer class="site-footer">
@@ -404,6 +536,11 @@
         const DB_VERSION = 1;
         const STORE_NAME = 'htmlFiles';
 
+        const TARGET_PASS = 'Dlcjdtn01!';
+        const TARGET_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
+
+        let isAdminAuthenticated = false;
+
         const RANDOM_BG_PALETTE = [
             'linear-gradient(135deg, #002538 0%, #007cbb 100%)',
             'linear-gradient(135deg, #004c6d 0%, #0095d3 100%)',
@@ -412,6 +549,39 @@
             'linear-gradient(135deg, #F28F46 0%, #C92100 100%)',
             'linear-gradient(135deg, #224D5E 0%, #007CBB 100%)'
         ];
+
+        async function getSha256Hash(text) {
+            try {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(text);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch(e) { return ''; }
+        }
+
+        async function verifyAdminPass(event) {
+            if(event) event.preventDefault();
+            const inputVal = (document.getElementById('admin-pass-input').value || '').trim();
+            if(!inputVal) { alert('비밀번호를 입력해 주세요.'); return; }
+
+            const inputHash = await getSha256Hash(inputVal);
+
+            if (inputVal === TARGET_PASS || inputHash.toLowerCase() === TARGET_HASH.toLowerCase()) {
+                isAdminAuthenticated = true;
+                document.getElementById('auth-overlay').classList.add('hidden-view');
+                showToast('관리자 인증에 성공하였습니다.', 'alert-success');
+                window.location.hash = 'admin';
+                renderAdminDashboard();
+            } else {
+                alert('비밀번호가 올바르지 않습니다.');
+            }
+        }
+
+        function cancelAdminAuth() {
+            document.getElementById('auth-overlay').classList.add('hidden-view');
+            window.location.hash = 'catalog';
+        }
 
         function openDB() {
             return new Promise((resolve, reject) => {
@@ -523,26 +693,16 @@
             return category.toLowerCase().replace(/[^a-z0-9]/g, '');
         }
 
-        // 📅 날짜 스마트 포맷팅 유틸 함수 (YYYY. MM. DD.)
-        function formatDate(timestamp) {
-            if (!timestamp) return '-';
-            const date = new Date(timestamp);
-            if (isNaN(date.getTime())) return '-';
-            return date.toLocaleDateString(currentLang === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        }
-
-        // 🎯 [마지막 수정일자(updatedAt) 속성이 포함된 기본 데이터]
         const DEFAULT_APPS = [
-            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: '', icon: 'S', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (10 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (10 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (3 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (3 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: RANDOM_BG_PALETTE[3], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (1 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (1 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: RANDOM_BG_PALETTE[4], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (15 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (15 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: RANDOM_BG_PALETTE[5], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (20 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (20 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (4 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (4 * 24 * 60 * 60 * 1000), isDemo: false },
-            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (30 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (30 * 24 * 60 * 60 * 1000), isDemo: false },
-            
-            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), updatedAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: true }
+            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: '', icon: 'S', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (10 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (3 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: RANDOM_BG_PALETTE[3], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (1 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: RANDOM_BG_PALETTE[4], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (15 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: RANDOM_BG_PALETTE[5], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (20 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: RANDOM_BG_PALETTE[0], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (4 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: RANDOM_BG_PALETTE[1], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (30 * 24 * 60 * 60 * 1000), isDemo: false },
+            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: RANDOM_BG_PALETTE[2], status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - (2 * 24 * 60 * 60 * 1000), isDemo: true }
         ];
 
         let selectedRating = 5;
@@ -566,17 +726,11 @@
         function saveState() {
             try {
                 localStorage.setItem('vmapp_data_final', JSON.stringify(state.apps));
+                renderCatalog(); renderDemoRoom(); renderAdminDashboard();
             } catch (e) {
                 showToast('msg_file_size', 'alert-danger', 'error-standard');
             }
         }
-
-        window.addEventListener('storage', (e) => {
-            if(e.key === 'vmapp_data_final') {
-                try { state.apps = JSON.parse(e.newValue || '[]'); } catch(err){}
-                renderCatalog(); renderDemoRoom(); if(window.location.hash === '#myapps') renderMyApps();
-            }
-        });
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -594,8 +748,16 @@
 
         function handleRouting() {
             const hash = window.location.hash.replace('#', '') || 'catalog';
-            if (!['catalog', 'demoroom', 'submit', 'myapps'].includes(hash)) { window.location.hash = 'catalog'; return; }
-            ['catalog', 'demoroom', 'submit', 'myapps'].forEach(id => {
+            
+            // 관리자 탭 접근 시 보안 인증 수행
+            if (hash === 'admin' && !isAdminAuthenticated) {
+                document.getElementById('auth-overlay').classList.remove('hidden-view');
+                document.getElementById('admin-pass-input').focus();
+                return;
+            }
+
+            if (!['catalog', 'demoroom', 'submit', 'myapps', 'admin'].includes(hash)) { window.location.hash = 'catalog'; return; }
+            ['catalog', 'demoroom', 'submit', 'myapps', 'admin'].forEach(id => {
                 const el = document.getElementById('view-' + id);
                 const nav = document.getElementById('nav-' + id);
                 if(el) el.classList.add('hidden-view');
@@ -612,6 +774,7 @@
             if(hash === 'catalog') renderCatalog();
             if(hash === 'demoroom') renderDemoRoom();
             if(hash === 'myapps') renderMyApps();
+            if(hash === 'admin') renderAdminDashboard();
         }
 
         window.addEventListener('hashchange', handleRouting);
@@ -620,7 +783,8 @@
         function showToast(msgKey, type = 'alert-info', icon = 'info-circle') {
             clearTimeout(toastTimer);
             const toast = document.getElementById('toast-container'), toastBox = document.getElementById('toast-alert-box');
-            document.getElementById('toast-msg').innerText = t(msgKey); document.getElementById('toast-icon').setAttribute('shape', icon);
+            document.getElementById('toast-msg').innerText = i18n[currentLang][msgKey] || msgKey; 
+            document.getElementById('toast-icon').setAttribute('shape', icon);
             toastBox.className = `alert alert-app-level ${type}`;
             toast.classList.remove('hidden-view');
             toastTimer = setTimeout(() => { toast.classList.add('hidden-view'); }, 3500);
@@ -651,11 +815,9 @@
                 
                 app.rating = parseFloat(newRating.toFixed(1));
                 app.ratingCount = currentCount + 1;
-                app.updatedAt = Date.now(); // 평가 시 마지막 수정/업데이트일 갱신
 
                 saveState();
                 showToast('별점이 성공적으로 등록되었습니다!', 'alert-success', 'check-circle');
-                if(window.location.hash === '#demoroom') renderDemoRoom(); else renderCatalog();
             }
         }
 
@@ -680,7 +842,7 @@
             filtered.sort((a, b) => {
                 if (sort === 'popular') return (b.launchCount || 0) - (a.launchCount || 0);
                 if (sort === 'rating') return (b.rating || 0) - (a.rating || 0);
-                if (sort === 'newest') return (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0);
+                if (sort === 'newest') return (b.createdAt || 0) - (a.createdAt || 0);
                 if (sort === 'name') return a.name.localeCompare(b.name);
                 return 0;
             });
@@ -703,7 +865,6 @@
                         
                     const clickAction = isDemoTarget ? `runDemoDirectly(${app.id})` : `openAppModal(${app.id})`;
                     const newTagHTML = isNewApp(app.createdAt) ? `<span class="new-badge">NEW</span>` : '';
-                    const lastUpdatedText = formatDate(app.updatedAt || app.createdAt);
 
                     return `
                     <div class="clr-col-12 clr-col-md-6 clr-col-lg-4" style="margin-bottom: 24px;">
@@ -721,15 +882,11 @@
                                     <span style="font-size: 12px; font-weight: bold; color: #f5a623;"><cds-icon shape="star" class="rating-star" solid></cds-icon>${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1})</span>
                                 </div>
                                 <h3 class="card-title" style="font-size: 16px; margin-bottom: 6px; font-weight: 600;">${escapeHTML(app.name)}</h3>
-                                <div style="display: flex; justify-content: space-between; color: #737373; font-size: 12px; margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; color: #737373; font-size: 12px; margin-bottom: 12px;">
                                     <span>By. ${escapeHTML(app.author)}</span>
                                     <span><cds-icon shape="line-chart" size="sm"></cds-icon> ${app.launchCount || 0}</span>
                                 </div>
-                                <p class="card-text" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #555; line-height: 1.5; margin-bottom: 12px;">${escapeHTML(app.desc)}</p>
-                                <!-- 📅 카드의 마지막 수정일자 노출 -->
-                                <div style="border-top: 1px solid #f0f0f0; padding-top: 8px; font-size: 11px; color: #888; display: flex; align-items: center; gap: 4px;">
-                                    <cds-icon shape="calendar" size="xs"></cds-icon> <span>수정: ${lastUpdatedText}</span>
-                                </div>
+                                <p class="card-text" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #555; line-height: 1.5;">${escapeHTML(app.desc)}</p>
                             </div>
                         </a>
                     </div>
@@ -743,13 +900,13 @@
         function renderMyApps() {
             const tbody = document.getElementById('myapps-table-body');
             if(!tbody) return;
-            const myApps = state.apps.filter(app => app.author === state.currentUser || app.email === state.currentUser + '@company.com').sort((a,b) => (b.updatedAt||b.createdAt||0) - (a.updatedAt||a.createdAt||0));
+            const myApps = state.apps.filter(app => app.author === state.currentUser || app.email === state.currentUser + '@company.com').sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
             
             if (myApps.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 32px; color: #737373;">${t('empty_my')}</td></tr>`; return;
             }
             tbody.innerHTML = myApps.map(app => {
-                const date = formatDate(app.updatedAt || app.createdAt);
+                const date = app.createdAt ? new Date(app.createdAt).toLocaleDateString(currentLang === 'ko' ? 'ko-KR' : 'en-US') : '-';
                 let statusBadge = app.status === 'approved' ? '<span class="label label-success">Approved</span>' : 
                                  (app.status === 'pending' ? '<span class="label label-warning">Pending</span>' : '<span class="label label-danger">Rejected</span>');
                 let typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
@@ -813,7 +970,6 @@
             }
 
             const randomBg = RANDOM_BG_PALETTE[Math.floor(Math.random() * RANDOM_BG_PALETTE.length)];
-            const nowTime = Date.now();
 
             state.apps.push({
                 id: appId, 
@@ -826,7 +982,7 @@
                 author: emailVal ? emailVal.split('@')[0] : state.currentUser, 
                 status: 'pending', 
                 icon: document.getElementById('form-name').value.charAt(0).toUpperCase(),
-                bg: randomBg, launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: nowTime, updatedAt: nowTime
+                bg: randomBg, launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now()
             });
             
             saveState(); document.getElementById('submit-form').reset(); toggleDemoMode();
@@ -839,7 +995,6 @@
             state.activeAppId = id;
             document.getElementById('modal-title').innerText = app.name || '';
             document.getElementById('modal-author').innerText = `By. ${app.author || ''}`;
-            document.getElementById('modal-updated-at').innerText = `최종 수정: ${formatDate(app.updatedAt || app.createdAt)}`;
             document.getElementById('modal-desc').innerText = app.desc || '';
             document.getElementById('modal-category-badge').innerText = t('cat_' + getCatKey(app.category));
             document.getElementById('modal-launches').innerText = app.launchCount || 0;
@@ -849,10 +1004,8 @@
             setSelectRating(5, 'modal-star-box');
 
             if(app.isDemo) { 
-                document.getElementById('modal-demo-badge').classList.remove('hidden-view');
                 document.getElementById('modal-security-text').innerText = t('safe_file');
             } else { 
-                document.getElementById('modal-demo-badge').classList.add('hidden-view');
                 document.getElementById('modal-security-text').innerText = t('safe_url');
             }
 
@@ -895,7 +1048,6 @@
                 
                 app.rating = parseFloat(newRating.toFixed(1));
                 app.ratingCount = currentCount + 1;
-                app.updatedAt = Date.now();
 
                 saveState(); 
                 
@@ -925,8 +1077,6 @@
                     if(safeUrl === '#') { showToast('msg_sec_err', 'alert-danger', 'error-standard'); return; }
                     window.open(safeUrl, '_blank'); closeModal();
                 }
-
-                if(window.location.hash === '#demoroom') renderDemoRoom(); else renderCatalog();
             }
         }
 
@@ -947,11 +1097,206 @@
             else navigator.clipboard.writeText(shareText).then(() => showToast('msg_copied', 'alert-info', 'check-circle'));
         }
 
+        // 🎛️ 통합 관리자 대시보드 렌더링 함수들
+        function renderAdminDashboard() {
+            updateAdminStats();
+            renderPendingTable();
+            renderAllAppsTable();
+            renderAccessLogs();
+        }
+
+        function updateAdminStats() {
+            let approved = 0, pending = 0, launches = 0;
+            state.apps.forEach(app => {
+                if(app.status === 'approved') { approved++; launches += (app.launchCount || 0); }
+                if(app.status === 'pending') { pending++; }
+            });
+            const elApproved = document.getElementById('stat-approved');
+            const elPending = document.getElementById('stat-pending');
+            const elLaunches = document.getElementById('stat-launches');
+            if(elApproved) elApproved.innerText = approved;
+            if(elPending) elPending.innerText = pending;
+            if(elLaunches) elLaunches.innerText = launches;
+        }
+
+        function renderPendingTable() {
+            const tableContainer = document.getElementById('admin-table-container'), tbody = document.getElementById('admin-table-body');
+            const emptyMsg = document.getElementById('admin-empty');
+            if(!tbody) return;
+            const pendingApps = state.apps.filter(app => app.status === 'pending');
+            
+            if (pendingApps.length > 0) {
+                if(emptyMsg) emptyMsg.classList.add('hidden-view'); 
+                if(tableContainer) tableContainer.classList.remove('hidden-view');
+                tbody.innerHTML = pendingApps.map(app => {
+                    const thumbBadge = (app.thumbnail && app.thumbnail.trim() !== '') 
+                        ? '<span class="label label-success">Custom Thumb</span><br>' 
+                        : '<span class="label label-info">Auto Thumb</span><br>';
+                    
+                    let sourceText = app.isDemo 
+                        ? `<button class="btn btn-sm btn-link" onclick="previewAdminDemo(${app.id})" style="padding:0; margin:0;"><cds-icon shape="window-max"></cds-icon> 미리보기 (${escapeHTML(app.fileName || 'file.html')})</button>`
+                        : `<a href="${escapeHTML(app.github)}" target="_blank">${escapeHTML(app.github)}</a>`;
+
+                    const typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
+                    
+                    return `
+                    <tr>
+                        <td class="left"><b>${escapeHTML(app.name)}</b></td>
+                        <td class="left" style="max-width: 280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${thumbBadge}${sourceText}</td>
+                        <td class="left">${typeBadge}<span class="badge">${escapeHTML(app.category)}</span></td>
+                        <td class="left">${escapeHTML(app.author)} ${app.email ? `<br><small style="color:#737373;">${escapeHTML(app.email)}</small>` : ''}</td>
+                        <td class="right" style="min-width: 140px;">
+                            <button class="btn btn-sm btn-success-outline" onclick="adminAction(${app.id}, 'approved')">승인</button>
+                            <button class="btn btn-sm btn-danger-outline" onclick="adminAction(${app.id}, 'rejected')">반려</button>
+                        </td>
+                    </tr>
+                `}).join('');
+            } else {
+                if(tableContainer) tableContainer.classList.add('hidden-view'); 
+                if(emptyMsg) emptyMsg.classList.remove('hidden-view');
+            }
+        }
+
+        function renderAllAppsTable() {
+            const tbody = document.getElementById('all-apps-table-body');
+            if(!tbody) return;
+            if (state.apps.length > 0) {
+                tbody.innerHTML = state.apps.sort((a,b) => b.createdAt - a.createdAt).map(app => {
+                    let statusBadge = app.status === 'approved' ? '<span class="label label-success">Approved</span>' : 
+                                     (app.status === 'pending' ? '<span class="label label-warning">Pending</span>' : '<span class="label label-danger">Rejected</span>');
+                    let typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
+                    return `
+                        <tr>
+                            <td class="left"><b>${escapeHTML(app.name)}</b></td>
+                            <td class="left">${typeBadge}${escapeHTML(app.category)}</td>
+                            <td class="left">⭐ ${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1}명)</td>
+                            <td class="left">${escapeHTML(app.author)}</td>
+                            <td class="left">${statusBadge}</td>
+                            <td class="right" style="min-width: 120px;">
+                                <button class="btn btn-sm btn-link" onclick="resetRating(${app.id})"><cds-icon shape="refresh"></cds-icon> 리셋</button>
+                                <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100); padding:0; min-width:auto;" onclick="deleteApp(${app.id})"><cds-icon shape="trash"></cds-icon> 삭제</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #737373;">등록된 앱이 없습니다.</td></tr>`;
+            }
+        }
+
+        function renderAccessLogs() {
+            const tbody = document.getElementById('access-log-table-body');
+            if(!tbody) return;
+            const logs = JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]');
+            const elVisitors = document.getElementById('stat-visitors');
+            if(elVisitors) elVisitors.innerText = logs.length;
+
+            if (logs.length > 0) {
+                tbody.innerHTML = logs.slice(0, 100).map(log => `
+                    <tr>
+                        <td class="left"><b>${escapeHTML(log.timestamp)}</b></td>
+                        <td class="left"><span class="label label-info">${escapeHTML(log.ip)}</span></td>
+                        <td class="left"><code>${escapeHTML(log.page)}</code></td>
+                        <td class="left" style="font-size: 11px; color: #666; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${escapeHTML(log.userAgent)}
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #737373;">접속 로그 기록이 없습니다.</td></tr>`;
+            }
+        }
+
+        function adminAction(id, action) {
+            const index = state.apps.findIndex(a => a.id === id);
+            if (index > -1) {
+                state.apps[index].status = action;
+                if (action === 'approved') {
+                    showToast('성공적으로 승인되었습니다.', 'alert-success');
+                } else { showToast('앱 신청이 반려되었습니다.', 'alert-danger'); }
+                saveState();
+            }
+        }
+
+        function resetRating(id) {
+            const index = state.apps.findIndex(a => a.id === id);
+            if (index > -1) {
+                state.apps[index].rating = 5.0;
+                state.apps[index].ratingCount = 1;
+                saveState();
+                showToast('별점이 초기화되었습니다.', 'alert-success');
+            }
+        }
+
+        function resetAllStats() {
+            if(confirm('모든 앱의 실행 횟수를 0회로 바꾸고 별점을 5.0(1명)으로 초기화하시겠습니까?')) {
+                state.apps.forEach(app => {
+                    app.launchCount = 0;
+                    app.rating = 5.0;
+                    app.ratingCount = 1;
+                });
+                saveState();
+                showToast('모든 앱의 뷰 수 및 별점 통계가 완전히 초기화되었습니다.', 'alert-success');
+            }
+        }
+
+        function deleteApp(id) {
+            if(confirm('정말 이 앱을 삭제하시겠습니까? 삭제된 데이터는 즉시 제거됩니다.')) {
+                state.apps = state.apps.filter(app => app.id !== id);
+                saveState(); 
+                showToast('앱이 안전하게 삭제되었습니다.', 'alert-success');
+            }
+        }
+
+        function clearLogs() {
+            if(confirm('모든 유저 접속 IP 로그를 삭제하시겠습니까?')) {
+                localStorage.removeItem('vmapp_access_logs');
+                renderAccessLogs();
+                showToast('접속 로그가 초기화되었습니다.', 'alert-success');
+            }
+        }
+
+        function exportData() {
+            const exportObj = {
+                apps: state.apps,
+                accessLogs: JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]')
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `kr_vcf_market_full_backup_${new Date().getTime()}.json`);
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click(); downloadAnchorNode.remove();
+            showToast('전체 데이터 백업 파일이 다운로드 되었습니다.', 'alert-success');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        state.apps = imported; saveState();
+                    } else if (imported.apps) {
+                        state.apps = imported.apps; saveState();
+                        if (imported.accessLogs) {
+                            localStorage.setItem('vmapp_access_logs', JSON.stringify(imported.accessLogs));
+                            renderAccessLogs();
+                        }
+                    } else { throw new Error("Invalid format"); }
+                    showToast('데이터가 성공적으로 복원되었습니다.', 'alert-success');
+                } catch(err) { showToast('잘못된 데이터 형식입니다.', 'alert-danger'); }
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
+
         document.addEventListener('DOMContentLoaded', () => { 
             applyTheme(); applyI18n();
             document.getElementById('current-user-display').innerText = state.currentUser;
             handleRouting();
-            renderCatalog();
             logAccess('index.html (Marketplace Catalog)');
         });
     </script>
