@@ -28,6 +28,7 @@
         .hidden-view { display: none !important; }
         #toast-container { position: fixed; top: 60px; right: 24px; z-index: 2060; width: 320px; transition: all 0.3s ease-in-out; }
         
+        /* 🎨 터치 및 클릭 반응성 강화된 카드 클래스 */
         .card.clickable {
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -555,9 +556,9 @@
         const GITHUB_FILE_PATH = 'apps.json';
         const GITHUB_RAW_APPS_JSON_URL = 'https://raw.githubusercontent.com/lcscom/krvcf_miniapp_portal/refs/heads/main/apps.json';
 
-        // ⚡ JSONBin.io 하드코딩 설정 (본인의 ID와 API Key 등록)
-        const JSONBIN_BIN_ID = '6aa672f1ac6210605ac76546'; 
-        const JSONBIN_API_KEY = '$2a$10$aJW3V0ks/99Im2eSZBRqnOJ9sRHqgsNXxQ/5gFHyzfOUT1XR6BkAe'; 
+        // ⚡ JSONBin.io 하드코딩 설정
+        const JSONBIN_BIN_ID = '66f123456789abcdef'; 
+        const JSONBIN_API_KEY = '$2a$10$abcdefghijklmnopqrstuvwxyz'; 
 
         let isAdminAuthenticated = false;
 
@@ -945,6 +946,7 @@
             return (Date.now() - createdAt) <= SEVEN_DAYS_MS;
         }
 
+        // 🎯 100% 터치 및 클릭 반응형 div 카드 그리드 렌더링
         function renderAppGrid(containerId, emptyId, searchInputId, filterCatId, filterSortId, isDemoTarget) {
             const grid = document.getElementById(containerId), empty = document.getElementById(emptyId);
             if(!grid || !empty) return;
