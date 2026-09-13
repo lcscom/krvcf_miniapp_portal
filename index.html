@@ -14,8 +14,8 @@
     
     <script type="module">
         import '@cds/core/icon/register.js';
-        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
-        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon);
+        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon, angleIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon, administratorIcon, trashIcon, refreshIcon, usersIcon, lockIcon, downloadCloudIcon, keyIcon, historyIcon, angleIcon);
     </script>
 
     <style>
@@ -61,11 +61,16 @@
         .star-item { cursor: pointer; font-size: 20px; color: #d3d3d3; transition: color 0.15s ease; user-select: none; }
         .star-item.active { color: #f5a623; }
 
-        .btn-modal-close {
-            background: #c92100; color: white !important; border: none; border-radius: 4px;
+        .btn-modal-action {
+            color: white !important; border: none; border-radius: 4px;
             padding: 6px 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 12px;
         }
+        .btn-modal-close { background: #c92100; }
         .btn-modal-close:hover { background: #a31a00; }
+        .btn-modal-fullscreen { background: #007cbb; }
+        .btn-modal-fullscreen:hover { background: #005a87; }
+        .btn-modal-nav { background: rgba(255,255,255,0.15); transition: background 0.2s; padding: 6px 8px; }
+        .btn-modal-nav:hover { background: rgba(255,255,255,0.3); }
 
         .auth-overlay {
             position: fixed; top:0; left:0; width:100vw; height:100vh;
@@ -85,7 +90,7 @@
         }
 
         .radio-type-group {
-            display: flex; gap: 16px; align-items: center; background: #f0f7ff; padding: 12px 16px; border-radius: 6px; border: 1px solid #b3d7ff;
+            display: flex; gap: 16px; align-items: center; background: #f0f7ff; padding: 12px 16px; border-radius: 6px; border: 1px solid #b3d7ff; flex-wrap: wrap;
         }
 
         /* 모달 오버레이 스타일 강제 적용 */
@@ -99,6 +104,11 @@
             display: none !important;
         }
 
+        /* 풀스크린 모달 대응 */
+        :fullscreen #iframe-modal-dialog { width: 100vw; height: 100vh; max-width: none; max-height: none; }
+        :-webkit-full-screen #iframe-modal-dialog { width: 100vw; height: 100vh; max-width: none; max-height: none; }
+        :-ms-fullscreen #iframe-modal-dialog { width: 100vw; height: 100vh; max-width: none; max-height: none; }
+
         @media (max-width: 768px) {
             .header-6 { padding: 0 8px; height: auto; flex-wrap: wrap; }
             .header-6 .branding { margin-right: auto; padding: 8px 0; }
@@ -109,7 +119,8 @@
             .last-updated-badge { font-size: 10px; padding: 2px 6px; }
 
             #iframe-header-bar { padding: 8px 12px !important; flex-wrap: wrap; gap: 8px; }
-            #iframe-header-bar .modal-title { font-size: 14px !important; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+            #iframe-header-bar .title-nav-group { width: 100%; justify-content: space-between; }
+            #iframe-header-bar .modal-title { font-size: 14px !important; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px; }
             #iframe-header-bar .rating-wrapper { width: 100%; justify-content: space-between; margin-top: 4px; }
         }
     </style>
@@ -133,17 +144,17 @@
     <div id="auth-overlay" class="auth-overlay hidden-view">
         <div class="auth-card">
             <cds-icon shape="lock" size="xl" style="color: #007cbb; margin-bottom: 12px;"></cds-icon>
-            <h3 style="margin:0 0 8px 0; font-weight:700;">관리자 인증</h3>
-            <p style="font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5;">VCF 콘솔 접근을 위해 관리자 비밀번호를 입력해 주세요.</p>
+            <h3 style="margin:0 0 8px 0; font-weight:700;" data-i18n="admin_auth_title">관리자 인증</h3>
+            <p style="font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5;" data-i18n="admin_auth_desc">VCF 콘솔 접근을 위해 관리자 비밀번호를 입력해 주세요.</p>
             <form onsubmit="verifyAdminPass(event)">
                 <div class="clr-form-control" style="margin-bottom: 16px;">
                     <div class="clr-input-wrapper">
-                        <input type="password" id="admin-pass-input" class="clr-input" placeholder="비밀번호 입력..." required style="width: 100%; text-align: center;">
+                        <input type="password" id="admin-pass-input" class="clr-input" data-i18n-placeholder="placeholder_pwd" placeholder="비밀번호 입력..." required style="width: 100%; text-align: center;">
                     </div>
                 </div>
                 <div style="display:flex; gap:8px;">
-                    <button type="button" class="btn btn-outline" style="flex:1; margin:0;" onclick="cancelAdminAuth()">취소</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1; margin:0;">로그인</button>
+                    <button type="button" class="btn btn-outline" style="flex:1; margin:0;" onclick="cancelAdminAuth()" data-i18n="btn_cancel">취소</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1; margin:0;" data-i18n="btn_login">로그인</button>
                 </div>
             </form>
         </div>
@@ -163,7 +174,7 @@
                         <div>
                             <span class="label label-info" id="modal-category-badge">Category</span>
                         </div>
-                        <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span>명)</span>
+                        <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span><span data-i18n="rating_count">명</span>)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
                         <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
@@ -174,7 +185,7 @@
                     <p class="p5" id="modal-desc" style="margin-bottom: 16px; white-space: pre-wrap; line-height: 1.6; color: #444;"></p>
                     
                     <div style="background: #f9f9f9; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; text-align: center;">
-                        <span style="font-size: 12px; font-weight: 600; color: #555;">앱 사용 후 평가하기:</span>
+                        <span style="font-size: 12px; font-weight: 600; color: #555;" data-i18n="eval_prompt">앱 사용 후 평가하기:</span>
                         <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 6px;" id="modal-star-box">
                             <span onclick="setSelectRating(1, 'modal-star-box')" class="star-item" data-val="1">★</span>
                             <span onclick="setSelectRating(2, 'modal-star-box')" class="star-item" data-val="2">★</span>
@@ -207,10 +218,23 @@
         <div class="modal-dialog" id="iframe-modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
             <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
                 <div class="modal-header" id="iframe-header-bar" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-                    <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;">Simulator Demo</h3>
                     
-                    <div class="rating-wrapper" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
-                        <span style="font-size: 11px; color: #e0e0e0;">평가:</span>
+                    <div class="title-nav-group" style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                        <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;" data-i18n="demo_title_modal">Simulator Demo</h3>
+                        
+                        <!-- 🎯 네비게이션 좌/우 화살표 버튼 -->
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-modal-action btn-modal-nav" onclick="navigateDemo(-1)" data-i18n-title="btn_prev" title="이전 앱">
+                                <cds-icon shape="angle" direction="left" size="sm"></cds-icon>
+                            </button>
+                            <button type="button" class="btn-modal-action btn-modal-nav" onclick="navigateDemo(1)" data-i18n-title="btn_next" title="다음 앱">
+                                <cds-icon shape="angle" direction="right" size="sm"></cds-icon>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="rating-wrapper" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; margin-right: 12px;">
+                        <span style="font-size: 11px; color: #e0e0e0;" data-i18n="eval_label">평가:</span>
                         <div style="display: flex; gap: 4px; align-items: center;" id="header-star-box">
                             <span onclick="setSelectRating(1, 'header-star-box')" class="star-item" data-val="1">★</span>
                             <span onclick="setSelectRating(2, 'header-star-box')" class="star-item" data-val="2">★</span>
@@ -218,17 +242,19 @@
                             <span onclick="setSelectRating(4, 'header-star-box')" class="star-item" data-val="4">★</span>
                             <span onclick="setSelectRating(5, 'header-star-box')" class="star-item active" data-val="5">★</span>
                         </div>
-                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 11px;" onclick="submitRatingOnly()">등록</button>
+                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 11px;" onclick="submitRatingOnly()" data-i18n="btn_submit_rating">등록</button>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" class="btn-modal-close" onclick="closeIframeModal()">
-                            <cds-icon shape="close" size="md"></cds-icon> 닫기
+                        <button type="button" class="btn-modal-action btn-modal-fullscreen" onclick="toggleFullScreen()">
+                            <cds-icon shape="expand" size="sm"></cds-icon> <span data-i18n="btn_fullscreen" class="hide-mobile">전체화면</span>
+                        </button>
+                        <button type="button" class="btn-modal-action btn-modal-close" onclick="closeIframeModal()">
+                            <cds-icon shape="close" size="sm"></cds-icon> <span data-i18n="btn_close">닫기</span>
                         </button>
                     </div>
                 </div>
-                <div class="modal-body" style="flex-grow: 1; padding: 0; overflow: hidden; background: #fff;">
-                    <!-- 💡 iframe 렌더링 컨테이너 -->
+                <div class="modal-body" id="iframe-modal-body" style="flex-grow: 1; padding: 0; overflow: hidden; background: #fff;">
                     <iframe id="iframe-content" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" style="width: 100%; height: 100%; border: none;"></iframe>
                 </div>
             </div>
@@ -247,11 +273,11 @@
                 <a href="#demoroom" class="nav-link" id="nav-demoroom" onclick="switchTab('demoroom')"><span class="nav-text" data-i18n="nav_demoroom">데모 룸</span></a>
                 <a href="#submit" class="nav-link" id="nav-submit" onclick="switchTab('submit')"><span class="nav-text" data-i18n="nav_submit">앱 신청</span></a>
                 <a href="#myapps" class="nav-link" id="nav-myapps" onclick="switchTab('myapps')"><span class="nav-text" data-i18n="nav_myapps">마이 워크스페이스</span></a>
-                <a href="#admin" class="nav-link" id="nav-admin" onclick="switchTab('admin')" style="color: #ffca28;"><cds-icon shape="administrator"></cds-icon> <span class="nav-text">관리자 콘솔</span></a>
+                <a href="#admin" class="nav-link" id="nav-admin" onclick="switchTab('admin')" style="color: #ffca28;"><cds-icon shape="administrator"></cds-icon> <span class="nav-text" data-i18n="nav_admin">관리자 콘솔</span></a>
             </div>
             <div class="header-actions">
                 <div class="last-updated-badge" id="apps-last-updated">
-                    <cds-icon shape="history" size="sm"></cds-icon> <span id="apps-updated-time">업데이트 확인 중...</span>
+                    <cds-icon shape="history" size="sm"></cds-icon> <span id="apps-updated-time" data-i18n="msg_updating">업데이트 확인 중...</span>
                 </div>
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleLang()" style="color: white; opacity: 0.85;"><cds-icon shape="world"></cds-icon> <span id="lang-display" style="font-weight:bold; margin-left:2px;">EN</span></button>
                 <button class="btn btn-sm btn-link nav-icon" onclick="toggleTheme()" style="color: white; opacity: 0.85;"><cds-icon shape="moon" id="theme-icon"></cds-icon></button>
@@ -341,18 +367,17 @@
                             <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 선택하신 위치에 반영됩니다.</p>
                             
                             <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
-                                <!-- 🔴 앱 유형 선택 라디오 그룹 -->
                                 <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required">게시 위치 선택</label>
+                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_target_loc">게시 위치 선택</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
                                         <div class="radio-type-group">
                                             <label style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                                                 <input type="radio" name="app-target-type" value="catalog" checked onchange="toggleFormDisplayType()"> 
-                                                <span>📋 일반 카탈로그 (외부 웹 링크)</span>
+                                                <span data-i18n="form_loc_catalog">📋 일반 카탈로그 (외부 웹 링크)</span>
                                             </label>
                                             <label style="cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #007cbb;">
                                                 <input type="radio" name="app-target-type" value="demoroom" onchange="toggleFormDisplayType()"> 
-                                                <span>🎮 데모 룸 (모달 시뮬레이터 / Raw HTML)</span>
+                                                <span data-i18n="form_loc_demo">🎮 데모 룸 (모달 시뮬레이터 / Raw HTML)</span>
                                             </label>
                                         </div>
                                     </div>
@@ -365,7 +390,7 @@
 
                                 <div class="clr-form-control clr-row">
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_email">Author Email</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="email" id="form-email" class="clr-input" placeholder="user@company.com" required style="width: 100%;"></div></div>
+                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="email" id="form-email" class="clr-input" data-i18n-placeholder="placeholder_email" placeholder="user@company.com" required style="width: 100%;"></div></div>
                                 </div>
 
                                 <div class="clr-form-control clr-row" id="url-input-group">
@@ -374,7 +399,7 @@
                                         <div class="clr-input-wrapper" style="width: 100%;">
                                             <input type="url" id="form-github" class="clr-input" placeholder="https://..." required style="width: 100%;">
                                         </div>
-                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;">* GitHub Raw HTML 주소(예: https://raw.githubusercontent.com/.../app.html)를 입력해 연결할 수도 있습니다.</span>
+                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;" data-i18n="form_url_desc">* GitHub Raw HTML 주소(예: https://raw...)를 입력해 연동할 수 있습니다.</span>
                                     </div>
                                 </div>
 
@@ -386,7 +411,7 @@
                                             <input type="file" id="form-html-file" accept=".html,.htm" style="display:none;" onchange="updateFileName(this)">
                                         </label>
                                         <span id="file-name-display" style="font-size: 13px; margin-left: 8px; color: #007cbb; font-weight: bold;"></span>
-                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 입력하세요 (최대 100MB).</span>
+                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;" data-i18n="form_file_desc">* 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 입력하세요 (최대 100MB).</span>
                                     </div>
                                 </div>
 
@@ -394,7 +419,7 @@
                                     <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_thumb">Thumbnail URL</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
                                         <div class="clr-input-wrapper" style="width: 100%;">
-                                            <input type="url" id="form-thumb" class="clr-input" placeholder="비워두면 랜덤 패턴 배너로 표현됩니다." style="width: 100%;">
+                                            <input type="url" id="form-thumb" class="clr-input" placeholder="https://..." style="width: 100%;">
                                         </div>
                                         <span style="font-size: 11px; color: #737373;" data-i18n="form_thumb_desc">이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.</span>
                                     </div>
@@ -454,19 +479,19 @@
                     <!-- 4. 🎛️ 통합 관리자 대시보드 뷰 (Admin View) -->
                     <div id="view-admin" class="hidden-view">
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-                            <h2 style="margin: 0; font-weight: 600;">통합 관리자 대시보드</h2>
+                            <h2 style="margin: 0; font-weight: 600;" data-i18n="admin_title">통합 관리자 대시보드</h2>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="btn btn-sm btn-outline" onclick="promptGithubToken()"><cds-icon shape="key"></cds-icon> GitHub 토큰 설정</button>
-                                <button class="btn btn-sm btn-warning-outline" onclick="resetAllStats()"><cds-icon shape="refresh"></cds-icon> 통계 전체 초기화</button>
-                                <button class="btn btn-sm btn-outline" onclick="exportData()"><cds-icon shape="download-cloud"></cds-icon> 백업</button>
+                                <button class="btn btn-sm btn-outline" onclick="promptGithubToken()"><cds-icon shape="key"></cds-icon> <span data-i18n="admin_btn_token">GitHub 토큰 설정</span></button>
+                                <button class="btn btn-sm btn-warning-outline" onclick="resetAllStats()"><cds-icon shape="refresh"></cds-icon> <span data-i18n="admin_btn_reset_stats">통계 전체 초기화</span></button>
+                                <button class="btn btn-sm btn-outline" onclick="exportData()"><cds-icon shape="download-cloud"></cds-icon> <span data-i18n="admin_btn_backup">백업</span></button>
                                 <label class="btn btn-sm btn-primary" style="margin: 0; cursor: pointer;">
-                                    <cds-icon shape="upload-cloud"></cds-icon> 데이터 복원
+                                    <cds-icon shape="upload-cloud"></cds-icon> <span data-i18n="admin_btn_restore">데이터 복원</span>
                                     <input type="file" style="display:none" accept=".json" onchange="importData(event)">
                                 </label>
                             </div>
                         </div>
 
-                        <div style="background: #e3f2fd; border-left: 4px solid #007cbb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 13px; color: #004c6d;">
+                        <div style="background: #e3f2fd; border-left: 4px solid #007cbb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 13px; color: #004c6d;" data-i18n="admin_db_status">
                             🚀 <strong>JSONBin 클라우드 DB 연동 중:</strong> 방문자는 접속 시 클라우드에서 최신 <code>apps.json</code>을 로드합니다.
                         </div>
                         
@@ -475,7 +500,7 @@
                                 <div class="card" style="margin-top: 0; background-color: #e8f4fa; border: 1px solid #007cbb;">
                                     <div class="card-block" style="text-align: center;">
                                         <h1 id="stat-approved" style="font-size: 2.2rem; margin: 0; color: #007cbb; font-weight: 700;">0</h1>
-                                        <p class="card-text" style="font-weight: 600;">승인된 전체 앱</p>
+                                        <p class="card-text" style="font-weight: 600;" data-i18n="admin_stat_1">승인된 전체 앱</p>
                                     </div>
                                 </div>
                             </div>
@@ -483,7 +508,7 @@
                                 <div class="card" style="margin-top: 0; background-color: #fcf2e3; border: 1px solid #e17c00;">
                                     <div class="card-block" style="text-align: center;">
                                         <h1 id="stat-pending" style="font-size: 2.2rem; margin: 0; color: #e17c00; font-weight: 700;">0</h1>
-                                        <p class="card-text" style="font-weight: 600;">대기 중인 요청</p>
+                                        <p class="card-text" style="font-weight: 600;" data-i18n="admin_stat_2">대기 중인 요청</p>
                                     </div>
                                 </div>
                             </div>
@@ -491,7 +516,7 @@
                                 <div class="card" style="margin-top: 0; background-color: #eaf5e1; border: 1px solid #60B515;">
                                     <div class="card-block" style="text-align: center;">
                                         <h1 id="stat-launches" style="font-size: 2.2rem; margin: 0; color: #60B515; font-weight: 700;">0</h1>
-                                        <p class="card-text" style="font-weight: 600;">누적 앱 실행 횟수</p>
+                                        <p class="card-text" style="font-weight: 600;" data-i18n="admin_stat_3">누적 앱 실행 횟수</p>
                                     </div>
                                 </div>
                             </div>
@@ -499,42 +524,42 @@
                                 <div class="card" style="margin-top: 0; background-color: #f3e5f5; border: 1px solid #8e24aa;">
                                     <div class="card-block" style="text-align: center;">
                                         <h1 id="stat-visitors" style="font-size: 2.2rem; margin: 0; color: #8e24aa; font-weight: 700;">0</h1>
-                                        <p class="card-text" style="font-weight: 600;">총 방문 유저 로그 수</p>
+                                        <p class="card-text" style="font-weight: 600;" data-i18n="admin_stat_4">총 방문 유저 로그 수</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <h3 style="margin-bottom: 12px; font-weight: 600;">앱 등록 대기열 (Pending Queue)</h3>
+                        <h3 style="margin-bottom: 12px; font-weight: 600;" data-i18n="admin_q_title">앱 등록 대기열 (Pending Queue)</h3>
                         <div id="admin-table-container" class="table-responsive hidden-view" style="margin-bottom: 24px;">
                             <table class="table table-compact">
                                 <thead>
                                     <tr>
-                                        <th class="left">App Name</th>
-                                        <th class="left">Thumbnail / Source</th>
-                                        <th class="left">Type / Category</th>
-                                        <th class="left">Author (Email)</th>
-                                        <th class="right">Action</th>
+                                        <th class="left" data-i18n="th_name">App Name</th>
+                                        <th class="left" data-i18n="th_thumb_src">Thumbnail / Source</th>
+                                        <th class="left" data-i18n="th_type_cat">Type / Category</th>
+                                        <th class="left" data-i18n="th_author">Author (Email)</th>
+                                        <th class="right" data-i18n="th_action">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-table-body"></tbody>
                             </table>
                         </div>
-                        <div id="admin-empty" class="hidden-view" style="text-align: center; padding: 40px; color: #737373; background: white; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
+                        <div id="admin-empty" class="hidden-view" style="text-align: center; padding: 40px; color: #737373; background: white; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;" data-i18n="admin_q_empty">
                             대기 중인 신규 앱 요청이 없습니다.
                         </div>
 
-                        <h3 style="margin-top: 32px; margin-bottom: 12px; font-weight: 600;">전체 앱 관리 (Manage All Apps)</h3>
+                        <h3 style="margin-top: 32px; margin-bottom: 12px; font-weight: 600;" data-i18n="admin_all_title">전체 앱 관리 (Manage All Apps)</h3>
                         <div class="table-responsive" style="margin-bottom: 32px;">
                             <table class="table table-compact">
                                 <thead>
                                     <tr>
-                                        <th class="left">App Name</th>
-                                        <th class="left">Type / Category</th>
-                                        <th class="left">Rating (Count)</th>
-                                        <th class="left">Author</th>
-                                        <th class="left">Status</th>
-                                        <th class="right">Action</th>
+                                        <th class="left" data-i18n="th_name">App Name</th>
+                                        <th class="left" data-i18n="th_type_cat">Type / Category</th>
+                                        <th class="left" data-i18n="th_rating">Rating (Count)</th>
+                                        <th class="left" data-i18n="th_author">Author</th>
+                                        <th class="left" data-i18n="th_status">Status</th>
+                                        <th class="right" data-i18n="th_action">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="all-apps-table-body"></tbody>
@@ -542,17 +567,17 @@
                         </div>
 
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 12px;">
-                            <h3 style="margin: 0; font-weight: 600;"><cds-icon shape="users"></cds-icon> 접속 유저 및 IP 기록 로그 (User Traffic Logs)</h3>
-                            <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100);" onclick="clearLogs()"><cds-icon shape="trash"></cds-icon> 로그 비우기</button>
+                            <h3 style="margin: 0; font-weight: 600;"><cds-icon shape="users"></cds-icon> <span data-i18n="admin_log_title">접속 유저 및 IP 기록 로그 (User Traffic Logs)</span></h3>
+                            <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100);" onclick="clearLogs()"><cds-icon shape="trash"></cds-icon> <span data-i18n="admin_btn_clear_logs">로그 비우기</span></button>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-compact">
                                 <thead>
                                     <tr>
-                                        <th class="left">접속 일시 (Timestamp)</th>
-                                        <th class="left">IP 주소 (IP Address)</th>
-                                        <th class="left">접속 페이지</th>
-                                        <th class="left">User Agent / 브라우저 정보</th>
+                                        <th class="left" data-i18n="th_log_time">접속 일시 (Timestamp)</th>
+                                        <th class="left" data-i18n="th_log_ip">IP 주소 (IP Address)</th>
+                                        <th class="left" data-i18n="th_log_page">접속 페이지</th>
+                                        <th class="left" data-i18n="th_log_agent">User Agent / 브라우저 정보</th>
                                     </tr>
                                 </thead>
                                 <tbody id="access-log-table-body"></tbody>
@@ -572,7 +597,7 @@
 
     <script>
         const DB_NAME = 'VCFMarketDB';
-        // 🛠️ DB_VERSION 판올림 적용: 기존 버그로 스토어 미생성된 로컬 환경 강제 갱신
+        // 🛠️ DB_VERSION 판올림 유지
         const DB_VERSION = 2; 
         const STORE_NAME = 'htmlFiles';
 
@@ -612,17 +637,17 @@
         async function verifyAdminPass(event) {
             if(event) event.preventDefault();
             const inputVal = (document.getElementById('admin-pass-input').value || '').trim();
-            if(!inputVal) { alert('비밀번호를 입력해 주세요.'); return; }
+            if(!inputVal) { alert(t('msg_enter_pwd')); return; }
 
             const inputHash = await getSha256Hash(inputVal);
 
             if (inputVal === TARGET_PASS || inputHash.toLowerCase() === TARGET_HASH.toLowerCase()) {
                 isAdminAuthenticated = true;
                 document.getElementById('auth-overlay').classList.add('hidden-view');
-                showToast('관리자 인증에 성공하였습니다.', 'alert-success');
+                showToast('msg_auth_success', 'alert-success');
                 switchTab('admin');
             } else {
-                alert('비밀번호가 올바르지 않습니다.');
+                alert(t('msg_wrong_pwd'));
             }
         }
 
@@ -631,7 +656,6 @@
             switchTab('catalog');
         }
 
-        // 🛠️ IndexedDB onupgradeneeded 이벤트 처리 복구
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -701,24 +725,55 @@
             } catch(e) {}
         }
 
+        // 🌐 완전 번역 딕셔너리 확장
         const i18n = {
             ko: {
-                brand: "KR VCF Mini App Marketplace", nav_catalog: "카탈로그", nav_demoroom: "데모 룸", nav_submit: "앱 신청", nav_myapps: "마이 워크스페이스",
-                btn_share: "공유하기", btn_close: "닫기", btn_launch: "앱 실행", btn_upload: "파일 선택",
+                brand: "KR VCF Mini App Marketplace", nav_catalog: "카탈로그", nav_demoroom: "데모 룸", nav_submit: "앱 신청", nav_myapps: "마이 워크스페이스", nav_admin: "관리자 콘솔",
+                btn_share: "공유하기", btn_close: "닫기", btn_launch: "앱 실행", btn_upload: "파일 선택", btn_preview: "미리보기",
+                btn_fullscreen: "전체화면", btn_submit_rating: "등록", btn_cancel: "취소", btn_login: "로그인", btn_prev: "이전 앱", btn_next: "다음 앱",
                 cat_title: "미니 앱 카탈로그", demo_title: "시뮬레이터 데모 룸", demo_desc: "클릭 시 전체화면 모달로 즉시 실행되는 HTML 시뮬레이터들입니다.",
                 sort_pop: "인기순 (실행순)", sort_rating: "평점 높은순", sort_new: "최신 등록순", sort_name: "이름순 (A-Z)", cat_all: "전체 카테고리", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
                 search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "Target URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 자동으로 랜덤 썸네일이 생성됩니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 / Raw URL (데모 룸 전시)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
-                my_title: "마이 워크스페이스", my_desc: "내가 신청한 앱의 상태와 내역을 확인합니다.", empty_my: "신청한 앱 내역이 없습니다.", th_name: "앱 이름", th_type: "유형", th_date: "신청일", th_cat: "카테고리", th_status: "상태", safe_url: "안전한 HTTPS 연결 검증 완료", safe_file: "내장 첨부파일 로드됨", runs: "회 실행", msg_copied: "클립보드 복사 완료", msg_submit: "신청 완료. 워크스페이스를 확인하세요.", msg_sec_err: "안전하지 않은 접근 차단됨", msg_file_size: "파일 크기가 100MB를 초과하여 등록할 수 없습니다.", legal_title: "법적 고지 및 면책 조항 (Disclaimer)", legal_desc: "본 마켓플레이스는 개인이 운영하는 비공식 페이지입니다. 앱 사용으로 인해 발생하는 모든 문제 및 데이터 손실에 대한 최종 책임은 전적으로 사용자 본인에게 있습니다."
+                form_target_loc: "게시 위치 선택", form_loc_catalog: "📋 일반 카탈로그 (외부 웹 링크)", form_loc_demo: "🎮 데모 룸 (모달 시뮬레이터 / Raw HTML)", form_url_desc: "* GitHub Raw HTML 주소(예: https://raw...)를 입력해 연동할 수 있습니다.", form_file_desc: "* 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 입력하세요 (최대 100MB).",
+                my_title: "마이 워크스페이스", my_desc: "내가 신청한 앱의 상태와 내역을 확인합니다.", empty_my: "신청한 앱 내역이 없습니다.",
+                th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status",
+                th_thumb_src: "Thumbnail / Source", th_type_cat: "Type / Category", th_author: "Author (Email)", th_action: "Action", th_rating: "Rating (Count)",
+                th_log_time: "접속 일시 (Timestamp)", th_log_ip: "IP 주소 (IP Address)", th_log_page: "접속 페이지", th_log_agent: "User Agent / 브라우저 정보",
+                safe_url: "안전한 HTTPS 연결 검증 완료", safe_file: "내장 첨부파일 로드됨", runs: "회 실행", rating_count: "명", eval_prompt: "앱 사용 후 평가하기:", eval_label: "평가:", demo_title_modal: "Simulator Demo",
+                admin_auth_title: "관리자 인증", admin_auth_desc: "VCF 콘솔 접근을 위해 관리자 비밀번호를 입력해 주세요.", placeholder_pwd: "비밀번호 입력...",
+                admin_title: "통합 관리자 대시보드", admin_btn_token: "GitHub 토큰 설정", admin_btn_reset_stats: "통계 전체 초기화", admin_btn_backup: "백업", admin_btn_restore: "데이터 복원", admin_db_status: "🚀 <strong>JSONBin 클라우드 DB 연동 중:</strong> 방문자는 접속 시 클라우드에서 최신 <code>apps.json</code>을 로드합니다.",
+                admin_stat_1: "승인된 전체 앱", admin_stat_2: "대기 중인 요청", admin_stat_3: "누적 앱 실행 횟수", admin_stat_4: "총 방문 유저 로그 수",
+                admin_q_title: "앱 등록 대기열 (Pending Queue)", admin_q_empty: "대기 중인 신규 앱 요청이 없습니다.", admin_all_title: "전체 앱 관리 (Manage All Apps)", admin_log_title: "접속 유저 및 IP 기록 로그 (User Traffic Logs)", admin_btn_clear_logs: "로그 비우기",
+                btn_approve: "승인", btn_reject: "반려", btn_reset: "리셋", btn_delete: "삭제", msg_updating: "업데이트 확인 중...",
+                msg_copied: "클립보드 복사 완료", msg_submit: "신청 완료. 워크스페이스를 확인하세요.", msg_sec_err: "안전하지 않은 접근 차단됨", msg_file_size: "파일 크기가 100MB를 초과하여 등록할 수 없습니다.",
+                msg_enter_pwd: "비밀번호를 입력해 주세요.", msg_wrong_pwd: "비밀번호가 올바르지 않습니다.", msg_auth_success: "관리자 인증에 성공하였습니다.", msg_need_file_url: "HTML 파일을 선택하거나 Target URL을 입력해주세요.",
+                msg_eval_success: "별점이 성공적으로 등록되었습니다!", msg_reset_success: "별점이 초기화되었습니다.", msg_confirm_reset_all: "모든 앱의 실행 횟수를 0회로 바꾸고 별점을 5.0(1명)으로 초기화하시겠습니까?", msg_confirm_delete: "정말 이 앱을 삭제하시겠습니까? 삭제된 데이터는 즉시 제거됩니다.", msg_delete_success: "앱이 안전하게 삭제되었습니다.", msg_confirm_clear_logs: "모든 유저 접속 IP 로그를 삭제하시겠습니까?", msg_clear_logs_success: "접속 로그가 초기화되었습니다.", msg_backup_success: "전체 데이터 백업 파일이 다운로드 되었습니다.", msg_restore_success: "데이터가 성공적으로 복원되었습니다.", msg_invalid_format: "잘못된 데이터 형식입니다.", prompt_github_token: "GitHub Personal Access Token (PAT)을 입력하세요:\n(입력 시 승인/삭제 내역이 GitHub apps.json에 자동 커밋됩니다)", msg_token_success: "GitHub 토큰이 등록되었습니다.", msg_db_sync_success: "클라우드 DB에 실시간 반영 완료!",
+                legal_title: "법적 고지 및 면책 조항 (Disclaimer)", legal_desc: "본 마켓플레이스는 개인이 운영하는 비공식 페이지입니다. 앱 사용으로 인해 발생하는 모든 문제 및 데이터 손실에 대한 최종 책임은 전적으로 사용자 본인에게 있습니다."
             },
             en: {
-                brand: "KR VCF Mini App Marketplace", nav_catalog: "Catalog", nav_demoroom: "Demo Room", nav_submit: "Submit App", nav_myapps: "My Workspace",
-                btn_share: "Share", btn_close: "Close", btn_launch: "Launch App", btn_upload: "Choose File",
+                brand: "KR VCF Mini App Marketplace", nav_catalog: "Catalog", nav_demoroom: "Demo Room", nav_submit: "Submit App", nav_myapps: "My Workspace", nav_admin: "Admin Console",
+                btn_share: "Share", btn_close: "Close", btn_launch: "Launch App", btn_upload: "Choose File", btn_preview: "Preview",
+                btn_fullscreen: "Fullscreen", btn_submit_rating: "Submit", btn_cancel: "Cancel", btn_login: "Login", btn_prev: "Previous App", btn_next: "Next App",
                 cat_title: "Mini App Catalog", demo_title: "Simulator Demo Room", demo_desc: "Attached HTML simulators that run instantly inside a full-screen modal.",
                 sort_pop: "Popular (Most Runs)", sort_rating: "Highest Rating", sort_new: "Newest First", sort_name: "Name (A-Z)", cat_all: "All Categories", 
                 cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
                 search_ph: "Search...", empty_search: "No apps found.", sub_title: "Submit a New Mini App", sub_desc: "Share useful scripts or apps. They will appear after admin approval.", form_name: "App Name", form_email: "Author Email", form_url: "Target URL", form_thumb: "Thumbnail URL (Optional)", form_thumb_desc: "Leave blank to auto-generate a random gradient thumbnail.", form_type: "App Type", form_is_demo: "Attach HTML File / Raw URL (List in Demo Room)", form_file: "HTML File", form_cat: "Category", form_desc: "Description", btn_submit: "Submit for Approval", 
-                my_title: "My Workspace", my_desc: "Track the status of your submitted apps.", empty_my: "You haven't submitted any apps yet.", th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status", safe_url: "Verified Safe HTTPS Link", safe_file: "Embedded HTML File Loaded", runs: "runs", msg_copied: "Copied to clipboard", msg_submit: "Submitted successfully.", msg_sec_err: "Unsafe URL blocked", msg_file_size: "File size exceeds 100MB limit.", legal_title: "Legal Notice & Disclaimer", legal_desc: "This marketplace is an unofficial page. The user assumes all responsibility for any issues, damages, or data loss resulting from the use of these apps."
+                form_target_loc: "Select Location", form_loc_catalog: "📋 Catalog (External Web Link)", form_loc_demo: "🎮 Demo Room (Modal Simulator / Raw HTML)", form_url_desc: "* You can input a GitHub Raw HTML URL (e.g., https://raw...).", form_file_desc: "* If no file, enter a GitHub Raw URL above (Max 100MB).",
+                my_title: "My Workspace", my_desc: "Track the status of your submitted apps.", empty_my: "You haven't submitted any apps yet.",
+                th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status",
+                th_thumb_src: "Thumbnail / Source", th_type_cat: "Type / Category", th_author: "Author (Email)", th_action: "Action", th_rating: "Rating (Count)",
+                th_log_time: "Timestamp", th_log_ip: "IP Address", th_log_page: "Accessed Page", th_log_agent: "User Agent / Browser Info",
+                safe_url: "Verified Safe HTTPS Link", safe_file: "Embedded HTML File Loaded", runs: "runs", rating_count: " users", eval_prompt: "Rate this App:", eval_label: "Rate:", demo_title_modal: "Simulator Demo",
+                admin_auth_title: "Admin Auth", admin_auth_desc: "Please enter the admin password to access the VCF console.", placeholder_pwd: "Password...",
+                admin_title: "Integrated Admin Dashboard", admin_btn_token: "GitHub Token", admin_btn_reset_stats: "Reset All Stats", admin_btn_backup: "Backup", admin_btn_restore: "Restore Data", admin_db_status: "🚀 <strong>JSONBin DB Sync Active:</strong> Visitors automatically load the latest <code>apps.json</code> from the cloud.",
+                admin_stat_1: "Total Approved Apps", admin_stat_2: "Pending Requests", admin_stat_3: "Total App Launches", admin_stat_4: "Total Visitor Logs",
+                admin_q_title: "Pending Approval Queue", admin_q_empty: "No new app requests pending.", admin_all_title: "Manage All Apps", admin_log_title: "User Traffic & IP Logs", admin_btn_clear_logs: "Clear Logs",
+                btn_approve: "Approve", btn_reject: "Reject", btn_reset: "Reset", btn_delete: "Delete", msg_updating: "Checking updates...",
+                msg_copied: "Copied to clipboard", msg_submit: "Submitted successfully.", msg_sec_err: "Unsafe URL blocked", msg_file_size: "File size exceeds 100MB limit.",
+                msg_enter_pwd: "Please enter your password.", msg_wrong_pwd: "Incorrect password.", msg_auth_success: "Admin authentication successful.", msg_need_file_url: "Please select an HTML file or enter a Target URL.",
+                msg_eval_success: "Rating submitted successfully!", msg_reset_success: "Rating has been reset.", msg_confirm_reset_all: "Are you sure you want to reset all app launch counts to 0 and ratings to 5.0 (1 user)?", msg_confirm_delete: "Are you sure you want to delete this app? This action cannot be undone.", msg_delete_success: "App safely deleted.", msg_confirm_clear_logs: "Are you sure you want to clear all user access logs?", msg_clear_logs_success: "Access logs cleared.", msg_backup_success: "Full data backup downloaded.", msg_restore_success: "Data restored successfully.", msg_invalid_format: "Invalid data format.", prompt_github_token: "Enter GitHub Personal Access Token (PAT):", msg_token_success: "GitHub token registered.", msg_db_sync_success: "Synced to Cloud DB successfully!",
+                legal_title: "Legal Notice & Disclaimer", legal_desc: "This marketplace is an unofficial page. The user assumes all responsibility for any issues, damages, or data loss resulting from the use of these apps."
             }
         };
 
@@ -728,9 +783,11 @@
         function applyI18n() {
             document.documentElement.lang = currentLang;
             document.getElementById('lang-display').innerText = currentLang === 'ko' ? 'EN' : 'KO';
-            document.querySelectorAll('[data-i18n]').forEach(el => { el.innerText = t(el.getAttribute('data-i18n')); });
+            document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n')); });
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.getAttribute('data-i18n-title')); });
             renderCatalog(); renderDemoRoom(); renderMyApps();
+            if (isAdminAuthenticated) renderAdminDashboard();
         }
 
         function toggleLang() { currentLang = currentLang === 'ko' ? 'en' : 'ko'; localStorage.setItem('vmapp_lang', currentLang); applyI18n(); }
@@ -889,7 +946,7 @@
                 renderCatalog(); renderDemoRoom(); renderAdminDashboard();
 
                 await syncToRemoteDB();
-                showToast('클라우드 DB에 실시간 반영 완료!', 'alert-success');
+                showToast('msg_db_sync_success', 'alert-success');
                 fetchAppsLastUpdatedTime();
             } catch (e) {
                 showToast('msg_file_size', 'alert-danger', 'error-standard');
@@ -898,10 +955,28 @@
 
         function promptGithubToken() {
             const currentToken = localStorage.getItem('vmapp_github_token') || '';
-            const inputToken = prompt('GitHub Personal Access Token (PAT)을 입력하세요:\n(입력 시 승인/삭제 내역이 GitHub apps.json에 자동 커밋됩니다)', currentToken);
+            const inputToken = prompt(t('prompt_github_token'), currentToken);
             if (inputToken !== null) {
                 localStorage.setItem('vmapp_github_token', inputToken.trim());
-                showToast('GitHub 토큰이 등록되었습니다.', 'alert-success');
+                showToast('msg_token_success', 'alert-success');
+            }
+        }
+
+        // 🔥 모달 전체화면 전환 함수
+        function toggleFullScreen() {
+            const iframeModalBody = document.getElementById('iframe-modal-body');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if(iframeModalBody.requestFullscreen) {
+                    iframeModalBody.requestFullscreen().catch(err => console.warn(err));
+                } else if(iframeModalBody.webkitRequestFullscreen) {
+                    iframeModalBody.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
             }
         }
 
@@ -959,7 +1034,7 @@
         function showToast(msgKey, type = 'alert-info', icon = 'info-circle') {
             clearTimeout(toastTimer);
             const toast = document.getElementById('toast-container'), toastBox = document.getElementById('toast-alert-box');
-            document.getElementById('toast-msg').innerText = i18n[currentLang][msgKey] || msgKey; 
+            document.getElementById('toast-msg').innerText = t(msgKey); 
             document.getElementById('toast-icon').setAttribute('shape', icon);
             toastBox.className = `alert alert-app-level ${type}`;
             toast.classList.remove('hidden-view');
@@ -993,7 +1068,7 @@
                 app.ratingCount = currentCount + 1;
 
                 saveState();
-                showToast('별점이 성공적으로 등록되었습니다!', 'alert-success', 'check-circle');
+                showToast('msg_eval_success', 'alert-success', 'check-circle');
             }
         }
 
@@ -1093,7 +1168,6 @@
             }).join('');
         }
 
-        // 🔥 앱 게시 위치 라디오 버튼 토글
         function toggleFormDisplayType() {
             const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
             const urlInput = document.getElementById('form-github');
@@ -1142,7 +1216,7 @@
             if (isDemo) {
                 const fileInput = document.getElementById('form-html-file');
                 if (fileInput && fileInput.files.length === 0 && (!targetUrl || targetUrl.trim() === '')) {
-                    alert('HTML 파일을 선택하거나 Target URL을 입력해주세요.'); return; 
+                    alert(t('msg_need_file_url')); return; 
                 }
                 if (fileInput && fileInput.files.length > 0) {
                     const file = fileInput.files[0];
@@ -1228,7 +1302,30 @@
             await launchApp();
         }
 
-        // 🛠️ iSIM 스크립트 Raw 로딩 + IDB 폴백 예외 방어까지 100% 적용
+        // 🎯 방향키(좌/우 버튼) 누를 때 데모 앱 순환 이동 함수
+        async function navigateDemo(direction) {
+            let demoApps = state.apps.filter(app => app.status === 'approved' && (app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'))));
+            demoApps.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // 최신순 정렬 기준
+
+            const currentIndex = demoApps.findIndex(a => a.id === state.activeAppId);
+            if (currentIndex === -1) return;
+
+            let nextIndex = currentIndex + direction;
+            if (nextIndex < 0) nextIndex = demoApps.length - 1; // 첫 앱에서 이전 누르면 마지막으로
+            if (nextIndex >= demoApps.length) nextIndex = 0;    // 마지막 앱에서 다음 누르면 처음으로
+
+            state.activeAppId = demoApps[nextIndex].id;
+            
+            const iframe = document.getElementById('iframe-content');
+            if(iframe) {
+                if(iframe.src.startsWith('blob:')) URL.revokeObjectURL(iframe.src);
+                iframe.src = ''; 
+                iframe.removeAttribute('srcdoc');
+            }
+
+            await launchApp();
+        }
+
         async function launchApp() {
             const index = state.apps.findIndex(a => a.id === state.activeAppId);
             if (index > -1) {
@@ -1274,7 +1371,6 @@
                         iframe.src = URL.createObjectURL(blob);
                     }
                     else if (app.github) { 
-                        // 🔥 GitHub Raw 파일 Fetch 적용 영역
                         try {
                             const res = await fetch(app.github);
                             if (!res.ok) throw new Error('Raw HTML Fetch failed');
@@ -1306,6 +1402,9 @@
                 iframe.removeAttribute('srcdoc');
             }
             state.activeAppId = null; 
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(()=>{});
+            }
         }
         
         function shareApp() {
@@ -1353,7 +1452,7 @@
                         : '<span class="label label-info">Auto Thumb</span><br>';
                     
                     let sourceText = app.isDemo 
-                        ? `<button class="btn btn-sm btn-link" onclick="previewAdminDemo(${app.id})" style="padding:0; margin:0;"><cds-icon shape="window-max"></cds-icon> 미리보기 (${escapeHTML(app.fileName || 'file.html')})</button>`
+                        ? `<button class="btn btn-sm btn-link" onclick="previewAdminDemo(${app.id})" style="padding:0; margin:0;"><cds-icon shape="window-max"></cds-icon> ${t('btn_preview')} (${escapeHTML(app.fileName || 'file.html')})</button>`
                         : `<a href="${escapeHTML(app.github)}" target="_blank">${escapeHTML(app.github)}</a>`;
 
                     const typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
@@ -1365,8 +1464,8 @@
                         <td class="left">${typeBadge}<span class="badge">${escapeHTML(app.category)}</span></td>
                         <td class="left">${escapeHTML(app.author)} ${app.email ? `<br><small style="color:#737373;">${escapeHTML(app.email)}</small>` : ''}</td>
                         <td class="right" style="min-width: 140px;">
-                            <button class="btn btn-sm btn-success-outline" onclick="adminAction(${app.id}, 'approved')">승인</button>
-                            <button class="btn btn-sm btn-danger-outline" onclick="adminAction(${app.id}, 'rejected')">반려</button>
+                            <button class="btn btn-sm btn-success-outline" onclick="adminAction(${app.id}, 'approved')">${t('btn_approve')}</button>
+                            <button class="btn btn-sm btn-danger-outline" onclick="adminAction(${app.id}, 'rejected')">${t('btn_reject')}</button>
                         </td>
                     </tr>
                 `}).join('');
@@ -1388,12 +1487,12 @@
                         <tr>
                             <td class="left"><b>${escapeHTML(app.name)}</b></td>
                             <td class="left">${typeBadge}${escapeHTML(app.category)}</td>
-                            <td class="left">⭐ ${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1}명)</td>
+                            <td class="left">⭐ ${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1}${t('rating_count')})</td>
                             <td class="left">${escapeHTML(app.author)}</td>
                             <td class="left">${statusBadge}</td>
                             <td class="right" style="min-width: 120px;">
-                                <button class="btn btn-sm btn-link" onclick="resetRating(${app.id})"><cds-icon shape="refresh"></cds-icon> 리셋</button>
-                                <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100); padding:0; min-width:auto;" onclick="deleteApp(${app.id})"><cds-icon shape="trash"></cds-icon> 삭제</button>
+                                <button class="btn btn-sm btn-link" onclick="resetRating(${app.id})"><cds-icon shape="refresh"></cds-icon> ${t('btn_reset')}</button>
+                                <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100); padding:0; min-width:auto;" onclick="deleteApp(${app.id})"><cds-icon shape="trash"></cds-icon> ${t('btn_delete')}</button>
                             </td>
                         </tr>
                     `;
@@ -1431,8 +1530,8 @@
             if (index > -1) {
                 state.apps[index].status = action;
                 if (action === 'approved') {
-                    showToast('성공적으로 승인되었습니다.', 'alert-success');
-                } else { showToast('앱 신청이 반려되었습니다.', 'alert-danger'); }
+                    showToast('msg_submit', 'alert-success');
+                } else { showToast('msg_submit', 'alert-danger'); }
                 saveState();
             }
         }
@@ -1443,35 +1542,35 @@
                 state.apps[index].rating = 5.0;
                 state.apps[index].ratingCount = 1;
                 saveState();
-                showToast('별점이 초기화되었습니다.', 'alert-success');
+                showToast('msg_reset_success', 'alert-success');
             }
         }
 
         function resetAllStats() {
-            if(confirm('모든 앱의 실행 횟수를 0회로 바꾸고 별점을 5.0(1명)으로 초기화하시겠습니까?')) {
+            if(confirm(t('msg_confirm_reset_all'))) {
                 state.apps.forEach(app => {
                     app.launchCount = 0;
                     app.rating = 5.0;
                     app.ratingCount = 1;
                 });
                 saveState();
-                showToast('모든 앱의 뷰 수 및 별점 통계가 완전히 초기화되었습니다.', 'alert-success');
+                showToast('msg_reset_success', 'alert-success');
             }
         }
 
         function deleteApp(id) {
-            if(confirm('정말 이 앱을 삭제하시겠습니까? 삭제된 데이터는 즉시 제거됩니다.')) {
+            if(confirm(t('msg_confirm_delete'))) {
                 state.apps = state.apps.filter(app => app.id !== id);
                 saveState(); 
-                showToast('앱이 안전하게 삭제되었습니다.', 'alert-success');
+                showToast('msg_delete_success', 'alert-success');
             }
         }
 
         function clearLogs() {
-            if(confirm('모든 유저 접속 IP 로그를 삭제하시겠습니까?')) {
+            if(confirm(t('msg_confirm_clear_logs'))) {
                 localStorage.removeItem('vmapp_access_logs');
                 renderAccessLogs();
-                showToast('접속 로그가 초기화되었습니다.', 'alert-success');
+                showToast('msg_clear_logs_success', 'alert-success');
             }
         }
 
@@ -1487,7 +1586,7 @@
             document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click(); 
             downloadAnchorNode.remove();
-            showToast('전체 데이터 백업 파일이 다운로드 되었습니다.', 'alert-success');
+            showToast('msg_backup_success', 'alert-success');
         }
 
         function importData(event) {
@@ -1506,8 +1605,8 @@
                             renderAccessLogs();
                         }
                     } else { throw new Error("Invalid format"); }
-                    showToast('데이터가 성공적으로 복원되었습니다.', 'alert-success');
-                } catch(err) { showToast('잘못된 데이터 형식입니다.', 'alert-danger'); }
+                    showToast('msg_restore_success', 'alert-success');
+                } catch(err) { showToast('msg_invalid_format', 'alert-danger'); }
                 event.target.value = ''; 
             };
             reader.readAsText(file);
