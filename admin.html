@@ -3,389 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KR VCF Mini App Admin Console</title>
     
-    <title>KR VCF Mini App Marketplace</title>
-    <meta name="description" content="사내 클라우드 인프라 관리를 위한 미니 앱을 공유하고 실행하세요.">
-    
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <link rel="stylesheet" href="https://unpkg.com/@cds/core@6.8.0/global.min.css">
     <link rel="stylesheet" href="https://unpkg.com/@cds/city@1.1.0/css/bundles/default.min.css">
     <link rel="stylesheet" href="https://unpkg.com/@clr/ui@15.0.0/clr-ui.min.css">
     
     <script type="module">
         import '@cds/core/icon/register.js';
-        import { ClarityIcons, vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
-        ClarityIcons.addIcons(vmBugIcon, shareIcon, moonIcon, sunIcon, popOutIcon, userIcon, lineChartIcon, worldIcon, starIcon, shieldCheckIcon, checkCircleIcon, closeIcon, windowMaxIcon, uploadCloudIcon, fileIcon, expandIcon, errorStandardIcon, filterGridIcon, eyeIcon);
+        import { ClarityIcons, administratorIcon, checkIcon, timesIcon, downloadCloudIcon, uploadCloudIcon, trashIcon, windowMaxIcon, closeIcon, refreshIcon, usersIcon, lockIcon, keyIcon } from 'https://unpkg.com/@cds/core@6.8.0/icon/index.js';
+        ClarityIcons.addIcons(administratorIcon, checkIcon, timesIcon, downloadCloudIcon, uploadCloudIcon, trashIcon, windowMaxIcon, closeIcon, refreshIcon, usersIcon, lockIcon, keyIcon);
     </script>
 
     <style>
-        html, body { height: 100%; margin: 0; }
+        html, body { height: 100%; margin: 0; background-color: #f7f8f9;}
         .main-container { display: flex; flex-direction: column; min-height: 100vh; }
-        .content-area { display: flex !important; flex-direction: column !important; padding: 0 !important; }
-        .view-wrapper { flex: 1 0 auto; padding: 28px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-        .site-footer { flex-shrink: 0; padding: 24px; border-top: 1px solid var(--cds-global-color-gray-200, #ccc); text-align: center; color: var(--cds-global-color-gray-600, #737373); font-size: 12px; line-height: 1.6; background-color: var(--cds-global-color-gray-50, transparent); }
-
+        .content-area { padding: 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
         .hidden-view { display: none !important; }
-        #toast-container { position: fixed; top: 60px; right: 24px; z-index: 1060; width: 350px; transition: all 0.3s ease-in-out; }
+        #toast-container { position: fixed; top: 20px; right: 24px; z-index: 1060; width: 350px; transition: all 0.3s ease-in-out; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 12px;}
         
-        .card.clickable {
-            border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
-            border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); margin-top: 0; background: var(--cds-global-color-gray-0, #ffffff);
-        }
-        .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.12); border-color: #007cbb; }
-
-        .card-banner-wrapper {
-            position: relative; width: 100%; height: 160px; overflow: hidden;
-            background: linear-gradient(135deg, #002538 0%, #007cbb 100%); display: flex; align-items: center; justify-content: center;
-        }
-        .card-banner-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
-        .card.clickable:hover .card-banner-wrapper img { transform: scale(1.06); }
-        .card-banner-fallback { font-size: 52px; font-weight: 800; color: rgba(255, 255, 255, 0.9); text-shadow: 0 2px 6px rgba(0,0,0,0.3); user-select: none; }
-
-        .filter-control-panel { background-color: var(--cds-global-color-gray-50, #f7f9fa); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 16px 20px; margin-bottom: 28px; }
-        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
-        .rating-star { color: #f5a623; margin-right: 2px; }
-
-        .star-item { cursor: pointer; font-size: 20px; color: #d3d3d3; transition: color 0.15s ease; user-select: none; }
-        .star-item.active { color: #f5a623; }
-
         .btn-modal-close {
             background: #c92100; color: white !important; border: none; border-radius: 4px;
             padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 13px;
         }
         .btn-modal-close:hover { background: #a31a00; }
 
-        /*📱 모바일 전용 반응형 스타일 강화 */
+        .auth-overlay {
+            position: fixed; top:0; left:0; width:100vw; height:100vh;
+            background: rgba(0, 37, 56, 0.96); z-index: 3000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            background: white; border-radius: 8px; padding: 32px; width: 380px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center;
+        }
+
         @media (max-width: 768px) {
-            .header-6 { padding: 0 12px; height: auto; min-height: 56px; flex-wrap: wrap; }
-            .header-6 .branding { margin-right: auto; }
-            .header-6 .branding .title { font-size: 14px; }
-            .header-nav { display: flex; width: 100%; overflow-x: auto; scrollbar-width: none; border-top: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
-            .header-nav::-webkit-scrollbar { display: none; }
-            .header-nav .nav-link { padding: 6px 12px; font-size: 13px; white-space: nowrap; }
-            .header-actions { position: absolute; top: 12px; right: 12px; }
-            
-            .view-wrapper { padding: 12px; }
-            .catalog-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
-            .filter-control-panel { padding: 12px; }
-            .search-and-filter { width: 100%; flex-direction: column; gap: 8px; }
-            .search-and-filter > div, .search-and-filter .clr-select-wrapper, .search-and-filter .clr-select, .search-and-filter .search { width: 100% !important; flex: 1 1 100%; }
-            
-            /* 시뮬레이터 풀화면 상단 헤더 반응형 개편 */
-            #iframe-modal .modal-header { flex-wrap: wrap; gap: 8px; padding: 8px 12px !important; }
-            #iframe-modal .modal-header > div { flex-wrap: wrap; }
-            .star-item { font-size: 18px; }
-            
+            .content-area { padding: 12px; }
+            .auth-card { width: 90%; padding: 20px; }
             #toast-container { top: unset; bottom: 16px; right: 12px; left: 12px; width: calc(100% - 24px); }
         }
     </style>
 </head>
-<body class="cds-theme-light" id="app-body">
+<body class="cds-theme-light">
 
-    <!-- Toast Alert -->
+    <!-- 🔑 SHA-256 인증 오버레이 (비밀번호: Dlcjdtn01!) -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-card">
+            <cds-icon shape="lock" size="xl" style="color: #007cbb; margin-bottom: 12px;"></cds-icon>
+            <h3 style="margin:0 0 8px 0; font-weight:700;">관리자 인증</h3>
+            <p style="font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5;">VCF 대시보드 접근을 위해 관리자 비밀번호를 입력해 주세요.</p>
+            <form onsubmit="verifyAdminPass(event)">
+                <div class="clr-form-control" style="margin-bottom: 16px;">
+                    <div class="clr-input-wrapper">
+                        <input type="password" id="admin-pass-input" class="clr-input" placeholder="비밀번호 입력..." required style="width: 100%; text-align: center;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin: 0;">보안 로그인</button>
+            </form>
+        </div>
+    </div>
+
     <div id="toast-container" class="hidden-view">
-        <div class="alert alert-app-level alert-info" role="alert" id="toast-alert-box">
+        <div class="alert alert-app-level alert-success" role="alert" id="toast-alert-box">
             <div class="alert-items">
                 <div class="alert-item static">
-                    <div class="alert-icon-wrapper"><cds-icon class="alert-icon" shape="info-circle" id="toast-icon"></cds-icon></div>
                     <span class="alert-text" id="toast-msg">메시지</span>
                 </div>
             </div>
-            <button type="button" class="close" onclick="closeToast()"><cds-icon shape="close"></cds-icon></button>
         </div>
     </div>
 
-    <!-- App Detail Modal -->
-    <div class="modal hidden-view" id="app-modal">
-        <div class="modal-dialog" role="dialog" aria-hidden="true">
-            <div class="modal-content" style="border-radius: 8px; overflow: hidden;">
-                <div class="modal-header">
-                    <button aria-label="Close" class="close" type="button" onclick="closeModal()"><cds-icon shape="close"></cds-icon></button>
-                    <h3 class="modal-title" id="modal-title" style="font-weight: 700;">App Name</h3>
-                </div>
-                <div class="modal-body" style="padding-top: 0;">
-                    <div id="modal-banner-container" class="card-banner-wrapper" style="height: 200px; margin: -16px -16px 16px -16px; width: calc(100% + 32px);"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div>
-                            <span class="label label-info" id="modal-category-badge">Category</span>
-                        </div>
-                        <span class="p7" style="font-weight: bold; color: #f5a623; font-size: 15px;"><cds-icon shape="star" class="rating-star" solid></cds-icon><span id="modal-rating">5.0</span> (<span id="modal-rating-count">1</span>명)</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
-                        <p class="p4" style="margin: 0; font-weight: 600; color: #333;" id="modal-author"></p>
-                        <span class="p7" style="color: #737373; display: flex; align-items: center; gap: 4px;">
-                            <cds-icon shape="line-chart" size="sm"></cds-icon> <span id="modal-launches">0</span> <span data-i18n="runs">runs</span>
-                        </span>
-                    </div>
-                    <p class="p5" id="modal-desc" style="margin-bottom: 16px; white-space: pre-wrap; line-height: 1.6; color: #444;"></p>
-                    
-                    <div style="background: #f9f9f9; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; text-align: center;">
-                        <span style="font-size: 12px; font-weight: 600; color: #555;">앱 사용 후 평가하기:</span>
-                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 6px;" id="modal-star-box">
-                            <span onclick="setSelectRating(1, 'modal-star-box')" class="star-item" data-val="1">★</span>
-                            <span onclick="setSelectRating(2, 'modal-star-box')" class="star-item" data-val="2">★</span>
-                            <span onclick="setSelectRating(3, 'modal-star-box')" class="star-item" data-val="3">★</span>
-                            <span onclick="setSelectRating(4, 'modal-star-box')" class="star-item" data-val="4">★</span>
-                            <span onclick="setSelectRating(5, 'modal-star-box')" class="star-item active" data-val="5">★</span>
-                        </div>
-                    </div>
-
-                    <div style="font-size: 11px; color: #2e7d32; display: flex; align-items: center; gap: 6px; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-weight: 500;">
-                        <cds-icon shape="shield-check" size="sm"></cds-icon> <span id="modal-security-text" data-i18n="safe_url">안전한 HTTPS 연결 검증 완료</span>
-                    </div>
-                </div>
-                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; background-color: #fafafa;">
-                    <button class="btn btn-sm btn-link" type="button" onclick="shareApp()"><cds-icon shape="share" style="margin-right: 4px;"></cds-icon> <span data-i18n="btn_share">공유하기</span></button>
-                    <div>
-                        <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
-                        <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
-                            <cds-icon shape="pop-out" style="margin-right: 4px;"></cds-icon> <span data-i18n="btn_launch">앱 실행</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-backdrop" aria-hidden="true" onclick="closeModal()"></div>
-    </div>
-
-    <!-- Simulator Fullscreen Modal -->
-    <div class="modal hidden-view" id="iframe-modal" style="z-index: 2000;">
-        <div class="modal-dialog" id="iframe-modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
+    <!-- Admin Preview Modal -->
+    <div class="modal hidden-view" id="admin-preview-modal" style="z-index: 2000;">
+        <div class="modal-dialog" role="dialog" aria-hidden="true" style="max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; margin: 0; padding: 0;">
             <div class="modal-content" style="height: 100%; display: flex; flex-direction: column; border-radius: 0; border: none;">
-                <div class="modal-header" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 8px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-                    <h3 class="modal-title" id="iframe-modal-title" style="color: white; font-weight: 600; margin: 0; font-size: 15px;">Simulator Demo</h3>
-                    
-                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;">
-                        <span style="font-size: 11px; color: #e0e0e0;">평가:</span>
-                        <div style="display: flex; gap: 2px; align-items: center;" id="header-star-box">
-                            <span onclick="setSelectRating(1, 'header-star-box')" class="star-item" data-val="1">★</span>
-                            <span onclick="setSelectRating(2, 'header-star-box')" class="star-item" data-val="2">★</span>
-                            <span onclick="setSelectRating(3, 'header-star-box')" class="star-item" data-val="3">★</span>
-                            <span onclick="setSelectRating(4, 'header-star-box')" class="star-item" data-val="4">★</span>
-                            <span onclick="setSelectRating(5, 'header-star-box')" class="star-item active" data-val="5">★</span>
-                        </div>
-                        <button class="btn btn-sm btn-success" style="margin: 0; padding: 2px 6px; font-size: 10px;" onclick="submitRatingOnly()">등록</button>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" class="btn-modal-close" onclick="closeIframeModal()">
-                            <cds-icon shape="close" size="md"></cds-icon> 닫기
+                <div class="modal-header" style="position: sticky; top: 0; z-index: 100; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: #002538; color: white; padding: 12px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                    <h3 class="modal-title" id="admin-preview-title" style="color: white; margin: 0; font-size: 16px;">Simulator Preview</h3>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 12px; color: #a0b2c6;">[ESC] 키로 닫기 가능</span>
+                        <button type="button" class="btn-modal-close" onclick="closeAdminPreview()">
+                            <cds-icon shape="close" size="md"></cds-icon> 닫기 (X)
                         </button>
                     </div>
                 </div>
-                <div class="modal-body" style="flex-grow: 1; padding: 0; overflow: hidden; background: #fff;">
-                    <iframe id="iframe-content" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" style="width: 100%; height: 100%; border: none;"></iframe>
+                <div class="modal-body" style="flex-grow: 1; padding: 0; overflow: hidden;">
+                    <iframe id="admin-iframe-preview" style="width: 100%; height: 100%; border: none;"></iframe>
                 </div>
             </div>
         </div>
-        <div class="modal-backdrop" aria-hidden="true" onclick="closeIframeModal()"></div>
+        <div class="modal-backdrop" aria-hidden="true" onclick="closeAdminPreview()"></div>
     </div>
 
     <div class="main-container">
-        <!-- Header -->
-        <header class="header header-6">
+        <header class="header header-6" style="background-color: #002538;">
             <div class="branding">
-                <a href="#catalog" class="nav-link"><cds-icon shape="vm-bug" size="md"></cds-icon><span class="title" data-i18n="brand">KR VCF Mini App Marketplace</span></a>
-            </div>
-            <div class="header-nav">
-                <a href="#catalog" class="nav-link" id="nav-catalog"><span class="nav-text" data-i18n="nav_catalog">카탈로그</span></a>
-                <a href="#demoroom" class="nav-link" id="nav-demoroom"><span class="nav-text" data-i18n="nav_demoroom">데모 룸</span></a>
-                <a href="#submit" class="nav-link" id="nav-submit"><span class="nav-text" data-i18n="nav_submit">앱 신청</span></a>
-                <a href="#myapps" class="nav-link" id="nav-myapps"><span class="nav-text" data-i18n="nav_myapps">마이 워크스페이스</span></a>
+                <span class="title" style="color: white;"><cds-icon shape="administrator" size="md" style="margin-right: 8px;"></cds-icon> KR VCF Mini App Admin</span>
             </div>
             <div class="header-actions">
-                <button class="btn btn-sm btn-link nav-icon" onclick="toggleLang()" style="color: white; opacity: 0.85;"><cds-icon shape="world"></cds-icon> <span id="lang-display" style="font-weight:bold; margin-left:4px;">EN</span></button>
-                <button class="btn btn-sm btn-link nav-icon" onclick="toggleTheme()" style="color: white; opacity: 0.85;"><cds-icon shape="moon" id="theme-icon"></cds-icon></button>
+                <a href="/" class="nav-link" style="color: white; margin-right: 16px;">일반 페이지로 이동</a>
             </div>
         </header>
 
         <div class="content-container">
             <div class="content-area">
-                <div class="view-wrapper">
-                    
-                    <!-- 1. Catalog View -->
-                    <div id="view-catalog">
-                        <div class="filter-control-panel">
-                            <div class="catalog-header" style="display: flex; justify-content: space-between; align-items: center;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <cds-icon shape="filter-grid" size="md" style="color: #007cbb;"></cds-icon>
-                                    <h3 style="margin: 0; font-weight: 600;" data-i18n="cat_title">미니 앱 카탈로그</h3>
-                                </div>
-                                <div class="search-and-filter" style="display: flex; gap: 12px; align-items: center;">
-                                    <div class="clr-select-wrapper">
-                                        <select id="filter-sort" class="clr-select" onchange="renderCatalog()">
-                                            <option value="popular" data-i18n="sort_pop">인기순 (실행순)</option>
-                                            <option value="rating" data-i18n="sort_rating">평점 높은순</option>
-                                            <option value="newest" data-i18n="sort_new">최신 등록순</option>
-                                            <option value="name" data-i18n="sort_name">이름순 (A-Z)</option>
-                                        </select>
-                                    </div>
-                                    <div class="clr-select-wrapper">
-                                        <select id="filter-category" class="clr-select" onchange="renderCatalog()">
-                                            <option value="All" data-i18n="cat_all">전체 카테고리</option>
-                                            <option value="Compute" data-i18n="cat_compute">Compute</option>
-                                            <option value="Storage" data-i18n="cat_storage">Storage</option>
-                                            <option value="Network" data-i18n="cat_network">Network</option>
-                                            <option value="Private AI" data-i18n="cat_privateai">Private AI</option>
-                                            <option value="DR" data-i18n="cat_dr">DR</option>
-                                            <option value="Dashboard" data-i18n="cat_dashboard">Dashboard</option>
-                                            <option value="Tools" data-i18n="cat_tools">Tools</option>
-                                            <option value="Code" data-i18n="cat_code">Code</option>
-                                        </select>
-                                    </div>
-                                    <div class="search" style="width: 220px;">
-                                        <label for="search-input"><input id="search-input" type="text" data-i18n-placeholder="search_ph" placeholder="앱 검색..." oninput="renderCatalog()"></label>
-                                    </div>
-                                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <h2 style="margin: 0; font-weight: 600;">통합 관리자 대시보드</h2>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-warning-outline" onclick="resetAllStats()"><cds-icon shape="refresh"></cds-icon> 통계 전체 초기화</button>
+                        <button class="btn btn-sm btn-outline" onclick="exportData()"><cds-icon shape="download-cloud"></cds-icon> 전체 데이터 백업</button>
+                        <label class="btn btn-sm btn-primary" style="margin: 0; cursor: pointer;">
+                            <cds-icon shape="upload-cloud"></cds-icon> 데이터 복원 (Import)
+                            <input type="file" style="display:none" accept=".json" onchange="importData(event)">
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="clr-row" style="margin-bottom: 32px;">
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #e8f4fa; border: 1px solid #007cbb;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-approved" style="font-size: 2.5rem; margin: 0; color: #007cbb; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">승인된 전체 앱</p>
                             </div>
                         </div>
-                        <div class="clr-row" id="catalog-grid"></div>
-                        <div id="empty-state-catalog" class="hidden-view" style="text-align: center; padding: 60px; color: #737373;" data-i18n="empty_search">검색 결과가 없습니다.</div>
                     </div>
-
-                    <!-- 1-B. Demo Room View -->
-                    <div id="view-demoroom" class="hidden-view">
-                        <div class="filter-control-panel">
-                            <div class="catalog-header" style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h3 style="margin: 0; font-weight: 600;" data-i18n="demo_title">시뮬레이터 데모 룸</h3>
-                                    <p class="p7" style="color: #666; margin: 4px 0 0 0;" data-i18n="demo_desc">클릭 시 전체화면 모달로 즉시 실행되는 HTML 시뮬레이터들입니다.</p>
-                                </div>
-                                <div class="search-and-filter" style="display: flex; gap: 12px; align-items: center;">
-                                    <div class="clr-select-wrapper">
-                                        <select id="filter-category-demo" class="clr-select" onchange="renderDemoRoom()">
-                                            <option value="All" data-i18n="cat_all">전체 카테고리</option>
-                                            <option value="Compute" data-i18n="cat_compute">Compute</option>
-                                            <option value="Storage" data-i18n="cat_storage">Storage</option>
-                                            <option value="Network" data-i18n="cat_network">Network</option>
-                                            <option value="Private AI" data-i18n="cat_privateai">Private AI</option>
-                                            <option value="DR" data-i18n="cat_dr">DR</option>
-                                            <option value="Dashboard" data-i18n="cat_dashboard">Dashboard</option>
-                                            <option value="Tools" data-i18n="cat_tools">Tools</option>
-                                            <option value="Code" data-i18n="cat_code">Code</option>
-                                        </select>
-                                    </div>
-                                    <div class="search" style="width: 220px;">
-                                        <label for="search-input-demo"><input id="search-input-demo" type="text" data-i18n-placeholder="search_ph" placeholder="앱 검색..." oninput="renderDemoRoom()"></label>
-                                    </div>
-                                </div>
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #fcf2e3; border: 1px solid #e17c00;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-pending" style="font-size: 2.5rem; margin: 0; color: #e17c00; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">대기 중인 요청</p>
                             </div>
                         </div>
-                        <div class="clr-row" id="demoroom-grid"></div>
-                        <div id="empty-state-demo" class="hidden-view" style="text-align: center; padding: 60px; color: #737373;" data-i18n="empty_search">검색 결과가 없습니다.</div>
                     </div>
-
-                    <!-- 2. Submit View -->
-                    <div id="view-submit" class="hidden-view">
-                        <div style="max-width: 800px; margin: 0 auto; background: var(--cds-global-color-gray-0, #fff); border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); border-radius: 8px; padding: 24px;">
-                            <h2 style="margin-top: 0; font-weight: 600;" data-i18n="sub_title">새 미니 앱 등록 신청</h2>
-                            <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 카탈로그에 반영됩니다.</p>
-                            
-                            <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_name">App Name</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="text" id="form-name" class="clr-input" required style="width: 100%;"></div></div>
-                                </div>
-
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_email">Author Email</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="email" id="form-email" class="clr-input" placeholder="user@company.com" required style="width: 100%;"></div></div>
-                                </div>
-                                
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_type">App Type</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9">
-                                        <div class="clr-toggle-wrapper">
-                                            <input type="checkbox" id="form-is-demo" class="clr-toggle" onchange="toggleDemoMode()">
-                                            <label for="form-is-demo" data-i18n="form_is_demo" style="font-weight: 600; color: #007cbb;">HTML 파일 첨부 (데모 룸 전시)</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="clr-form-control clr-row" id="url-input-group">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_url">Target URL</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-input-wrapper" style="width: 100%;"><input type="url" id="form-github" class="clr-input" placeholder="https://..." required style="width: 100%;"></div></div>
-                                </div>
-
-                                <div class="clr-form-control clr-row hidden-view" id="file-input-group">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_file">HTML 파일 첨부</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9">
-                                        <label class="btn btn-sm btn-outline" style="margin:0;">
-                                            <cds-icon shape="upload-cloud"></cds-icon> <span data-i18n="btn_upload">파일 선택</span>
-                                            <input type="file" id="form-html-file" accept=".html,.htm" style="display:none;" onchange="updateFileName(this)">
-                                        </label>
-                                        <span id="file-name-display" style="font-size: 13px; margin-left: 8px; color: #007cbb; font-weight: bold;"></span>
-                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* IndexedDB 연동으로 최대 100MB 파일까지 업로드할 수 있습니다.</span>
-                                    </div>
-                                </div>
-
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_thumb">Thumbnail URL</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9">
-                                        <div class="clr-input-wrapper" style="width: 100%;">
-                                            <input type="url" id="form-thumb" class="clr-input" placeholder="비워두면 웹페이지 화면을 자동 캡처합니다." style="width: 100%;">
-                                        </div>
-                                        <span style="font-size: 11px; color: #737373;" data-i18n="form_thumb_desc">이미지 주소를 입력하거나 비워두면 자동으로 미리보기가 생성됩니다.</span>
-                                    </div>
-                                </div>
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3" data-i18n="form_cat">Category</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9">
-                                        <div class="clr-select-wrapper" style="width: 100%;">
-                                            <select id="form-category" class="clr-select" style="width: 100%;">
-                                                <option value="Compute" data-i18n="cat_compute">Compute</option>
-                                                <option value="Storage" data-i18n="cat_storage">Storage</option>
-                                                <option value="Network" data-i18n="cat_network">Network</option>
-                                                <option value="Private AI" data-i18n="cat_privateai">Private AI</option>
-                                                <option value="DR" data-i18n="cat_dr">DR</option>
-                                                <option value="Dashboard" data-i18n="cat_dashboard">Dashboard</option>
-                                                <option value="Tools" data-i18n="cat_tools">Tools</option>
-                                                <option value="Code" data-i18n="cat_code">Code</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="clr-form-control clr-row">
-                                    <label class="clr-control-label clr-col-12 clr-col-md-3 required" data-i18n="form_desc">Description</label>
-                                    <div class="clr-control-container clr-col-12 clr-col-md-9"><div class="clr-textarea-wrapper" style="width: 100%;"><textarea id="form-desc" class="clr-textarea" rows="4" required style="width: 100%;"></textarea></div></div>
-                                </div>
-                                <div class="clr-row" style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee;">
-                                    <div class="clr-col-12" style="text-align: right;"><button type="submit" class="btn btn-primary" data-i18n="btn_submit">운영자 승인 요청</button></div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- 3. My Workspace View -->
-                    <div id="view-myapps" class="hidden-view">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
-                            <div>
-                                <h2 style="margin-bottom: 4px; font-weight: 600;" data-i18n="my_title">마이 워크스페이스</h2>
-                                <p class="p5" style="color: #666; margin: 0;" data-i18n="my_desc">내가 신청한 앱의 상태와 내역을 확인합니다.</p>
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #eaf5e1; border: 1px solid #60B515;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-launches" style="font-size: 2.5rem; margin: 0; color: #60B515; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">누적 앱 실행 횟수</p>
                             </div>
                         </div>
-                        <div class="table-responsive" style="background: var(--cds-global-color-gray-0, #fff); border-radius: 8px; border: 1px solid var(--cds-global-color-gray-200, #e2e2e2); padding: 8px;">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th class="left" data-i18n="th_name">App Name</th>
-                                        <th class="left" data-i18n="th_type">Type</th>
-                                        <th class="left" data-i18n="th_date">Date Submitted</th>
-                                        <th class="left" data-i18n="th_cat">Category</th>
-                                        <th class="left" data-i18n="th_status">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="myapps-table-body"></tbody>
-                            </table>
+                    </div>
+                    <div class="clr-col-12 clr-col-md-3">
+                        <div class="card" style="margin-top: 0; background-color: #f3e5f5; border: 1px solid #8e24aa;">
+                            <div class="card-block" style="text-align: center;">
+                                <h1 id="stat-visitors" style="font-size: 2.5rem; margin: 0; color: #8e24aa; font-weight: 700;">0</h1>
+                                <p class="card-text" style="font-weight: 600;">총 방문 유저 로그 수</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <footer class="site-footer">
-                    <strong style="display: block; margin-bottom: 4px;" data-i18n="legal_title">법적 고지 및 면책 조항 (Disclaimer)</strong>
-                    <span data-i18n="legal_desc">본 마켓플레이스는 개인이 운영하는 비공식 페이지입니다. 앱 사용으로 인해 발생하는 모든 문제 및 데이터 손실에 대한 최종 책임은 전적으로 사용자 본인에게 있습니다.</span>
-                </footer>
+                <h3 style="margin-bottom: 12px; font-weight: 600;">앱 등록 대기열 (Pending Queue)</h3>
+                <div id="admin-table-container" class="table-responsive hidden-view">
+                    <table class="table table-compact">
+                        <thead>
+                            <tr>
+                                <th class="left">App Name</th>
+                                <th class="left">Thumbnail / Source</th>
+                                <th class="left">Type / Category</th>
+                                <th class="left">Author (Email)</th>
+                                <th class="right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="admin-empty" class="hidden-view" style="text-align: center; padding: 40px; color: #737373; background: white; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    대기 중인 신규 앱 요청이 없습니다.
+                </div>
+
+                <h3 style="margin-top: 48px; margin-bottom: 12px; font-weight: 600;">전체 앱 관리 (Manage All Apps)</h3>
+                <div class="table-responsive">
+                    <table class="table table-compact">
+                        <thead>
+                            <tr>
+                                <th class="left">App Name</th>
+                                <th class="left">Type / Category</th>
+                                <th class="left">Rating (Count)</th>
+                                <th class="left">Author</th>
+                                <th class="left">Status</th>
+                                <th class="right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-apps-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 48px; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-weight: 600;"><cds-icon shape="users"></cds-icon> 접속 유저 및 IP 기록 로그 (User Traffic Logs)</h3>
+                    <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100);" onclick="clearLogs()"><cds-icon shape="trash"></cds-icon> 로그 비우기</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-compact">
+                        <thead>
+                            <tr>
+                                <th class="left">접속 일시 (Timestamp)</th>
+                                <th class="left">IP 주소 (IP Address)</th>
+                                <th class="left">접속 페이지</th>
+                                <th class="left">User Agent / 브라우저 정보</th>
+                            </tr>
+                        </thead>
+                        <tbody id="access-log-table-body"></tbody>
+                    </table>
+                </div>
+
             </div>
         </div>
     </div>
@@ -395,29 +218,34 @@
         const DB_VERSION = 1;
         const STORE_NAME = 'htmlFiles';
 
+        const HARDCODED_SHA256_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
+
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function verifyAdminPass(e) {
+            e.preventDefault();
+            const inputPass = document.getElementById('admin-pass-input').value;
+            const inputHash = await sha256(inputPass);
+
+            if (inputHash.toLowerCase() === HARDCODED_SHA256_HASH.toLowerCase()) {
+                document.getElementById('auth-overlay').classList.add('hidden-view');
+                showToast('관리자 인증에 성공하였습니다.');
+            } else {
+                alert('비밀번호가 올바르지 않습니다.');
+            }
+        }
+
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
-                };
                 request.onsuccess = (e) => resolve(e.target.result);
                 request.onerror = (e) => reject(e.target.error);
             });
-        }
-
-        async function saveFileToIDB(id, content) {
-            try {
-                const db = await openDB();
-                return new Promise((resolve, reject) => {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    const req = store.put(content, id);
-                    req.onsuccess = () => resolve();
-                    req.onerror = (e) => reject(e.target.error);
-                });
-            } catch(e) { console.warn('IDB save error', e); }
         }
 
         async function getFileFromIDB(id) {
@@ -433,7 +261,7 @@
             } catch(e) { return null; }
         }
 
-        async function logAccess(pageName) {
+        async function logAdminAccess() {
             let userIp = 'Private IP / Local';
             try {
                 const response = await fetch('https://api.ipify.org?format=json');
@@ -441,12 +269,12 @@
                     const data = await response.json();
                     userIp = data.ip;
                 }
-            } catch(e) {}
+            } catch(e) { console.log('IP fetch skipped'); }
 
             const logEntry = {
                 timestamp: new Date().toLocaleString(),
                 ip: userIp,
-                page: pageName,
+                page: 'admin.html (Console)',
                 userAgent: navigator.userAgent
             };
 
@@ -455,456 +283,266 @@
                 logs.unshift(logEntry);
                 if(logs.length > 500) logs.pop();
                 localStorage.setItem('vmapp_access_logs', JSON.stringify(logs));
-            } catch(e) {}
+            } catch(e){}
+            renderAccessLogs();
         }
-
-        const i18n = {
-            ko: {
-                brand: "KR VCF Mini App Marketplace", nav_catalog: "카탈로그", nav_demoroom: "데모 룸", nav_submit: "앱 신청", nav_myapps: "마이 워크스페이스",
-                btn_share: "공유하기", btn_close: "닫기", btn_launch: "앱 실행", btn_upload: "파일 선택",
-                cat_title: "미니 앱 카탈로그", demo_title: "시뮬레이터 데모 룸", demo_desc: "클릭 시 전체화면 모달로 즉시 실행되는 HTML 시뮬레이터들입니다.",
-                sort_pop: "인기순 (실행순)", sort_rating: "평점 높은순", sort_new: "최신 등록순", sort_name: "이름순 (A-Z)", cat_all: "전체 카테고리", 
-                cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
-                search_ph: "검색...", empty_search: "검색 결과 또는 등록된 앱이 없습니다.", sub_title: "새 미니 앱 등록 신청", sub_desc: "유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.", form_name: "앱 이름", form_email: "작성자 이메일", form_url: "대상 URL", form_thumb: "썸네일 URL (선택)", form_thumb_desc: "이미지 주소를 입력하거나 비워두면 웹페이지를 자동 캡처합니다.", form_type: "앱 유형", form_is_demo: "HTML 파일 첨부 (데모 룸 전시용)", form_file: "HTML 파일", form_cat: "카테고리", form_desc: "상세 설명", btn_submit: "운영자 승인 요청", 
-                my_title: "마이 워크스페이스", my_desc: "내가 신청한 앱의 상태와 내역을 확인합니다.", empty_my: "신청한 앱 내역이 없습니다.", th_name: "앱 이름", th_type: "유형", th_date: "신청일", th_cat: "카테고리", th_status: "상태", safe_url: "안전한 HTTPS 연결 검증 완료", safe_file: "내장 첨부파일 로드됨", runs: "회 실행", msg_copied: "클립보드 복사 완료", msg_submit: "신청 완료. 워크스페이스를 확인하세요.", msg_sec_err: "안전하지 않은 접근 차단됨", msg_file_size: "파일 크기가 100MB를 초과하여 등록할 수 없습니다.", legal_title: "법적 고지 및 면책 조항 (Disclaimer)", legal_desc: "본 마켓플레이스는 개인이 운영하는 비공식 페이지입니다. 앱 사용으로 인해 발생하는 모든 문제 및 데이터 손실에 대한 최종 책임은 전적으로 사용자 본인에게 있습니다."
-            },
-            en: {
-                brand: "KR VCF Mini App Marketplace", nav_catalog: "Catalog", nav_demoroom: "Demo Room", nav_submit: "Submit App", nav_myapps: "My Workspace",
-                btn_share: "Share", btn_close: "Close", btn_launch: "Launch App", btn_upload: "Choose File",
-                cat_title: "Mini App Catalog", demo_title: "Simulator Demo Room", demo_desc: "Attached HTML simulators that run instantly inside a full-screen modal.",
-                sort_pop: "Popular (Most Runs)", sort_rating: "Highest Rating", sort_new: "Newest First", sort_name: "Name (A-Z)", cat_all: "All Categories", 
-                cat_compute: "Compute", cat_storage: "Storage", cat_network: "Network", cat_privateai: "Private AI", cat_dr: "DR", cat_dashboard: "Dashboard", cat_tools: "Tools", cat_code: "Code",
-                search_ph: "Search...", empty_search: "No apps found.", sub_title: "Submit a New Mini App", sub_desc: "Share useful scripts or apps. They will appear after admin approval.", form_name: "App Name", form_email: "Author Email", form_url: "Target URL", form_thumb: "Thumbnail URL (Optional)", form_thumb_desc: "Leave blank to auto-capture the webpage screenshot.", form_type: "App Type", form_is_demo: "Attach HTML File (List in Demo Room)", form_file: "HTML File", form_cat: "Category", form_desc: "Description", btn_submit: "Submit for Approval", 
-                my_title: "My Workspace", my_desc: "Track the status of your submitted apps.", empty_my: "You haven't submitted any apps yet.", th_name: "App Name", th_type: "Type", th_date: "Date Submitted", th_cat: "Category", th_status: "Status", safe_url: "Verified Safe HTTPS Link", safe_file: "Embedded HTML File Loaded", runs: "runs", msg_copied: "Copied to clipboard", msg_submit: "Submitted successfully.", msg_sec_err: "Unsafe URL blocked", msg_file_size: "File size exceeds 100MB limit.", legal_title: "Legal Notice & Disclaimer", legal_desc: "This marketplace is an unofficial page. The user assumes all responsibility for any issues, damages, or data loss resulting from the use of these apps."
-            }
-        };
-
-        let currentLang = localStorage.getItem('vmapp_lang') || 'ko';
-        function t(key) { return i18n[currentLang][key] || key; }
-
-        function applyI18n() {
-            document.documentElement.lang = currentLang;
-            document.getElementById('lang-display').innerText = currentLang === 'ko' ? 'EN' : 'KO';
-            document.querySelectorAll('[data-i18n]').forEach(el => { el.innerText = t(el.getAttribute('data-i18n')); });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
-            renderCatalog(); renderDemoRoom(); renderMyApps();
-        }
-
-        function toggleLang() { currentLang = currentLang === 'ko' ? 'en' : 'ko'; localStorage.setItem('vmapp_lang', currentLang); applyI18n(); }
 
         function escapeHTML(str) { 
             if (!str) return ''; return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); 
         }
-        function sanitizeURL(url) {
-            if (!url) return '#';
-            try { const parsed = new URL(url); if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href; return '#'; } catch (e) { return '#'; }
-        }
 
-        function getCatKey(category) {
-            if (!category) return 'compute';
-            return category.toLowerCase().replace(/[^a-z0-9]/g, '');
-        }
-
-        const DEFAULT_APPS = [
-            { id: 1, name: 'ESXi Log Analyzer', author: 'user', email: 'user@vmware.com', desc: 'Collects and analyzes vSphere host logs in real-time on a rich dashboard.', category: 'Compute', github: 'https://vmware.github.io/esxi-log/', thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', icon: 'E', bg: '#0065AB', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 100000000, isDemo: false },
-            { id: 2, name: 'vSAN Storage Sizer & Calc', author: 'storage_guru', email: 'storage@vmware.com', desc: 'Calculates raw vs usable capacity for vSAN clusters with deduplication.', category: 'Storage', github: 'https://vmware.github.io/vsan-sizer/', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'S', bg: '#60B515', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 90000000, isDemo: false },
-            { id: 3, name: 'NSX-T Topology Viewer', author: 'net_admin', email: 'net_admin@vmware.com', desc: 'Visualizes network overlays, logical switches, and routing structures.', category: 'Network', github: 'https://vmware.github.io/nsx-view/', thumbnail: '', icon: 'N', bg: '#F28F46', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 50000000, isDemo: false },
-            { id: 4, name: 'Private AI LLM Prompt Helper', author: 'ai_dev', email: 'ai@vmware.com', desc: 'Optimizes prompts for local Private AI Microservices on VCF.', category: 'Private AI', github: 'https://vmware.github.io/private-ai-helper/', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', icon: 'A', bg: '#8E24AA', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 40000000, isDemo: false },
-            { id: 5, name: 'SRM Disaster Recovery Simulator', author: 'dr_expert', email: 'dr@vmware.com', desc: 'Simulates SRM failover, testing plans, and RTO/RPO estimation.', category: 'DR', github: 'https://vmware.github.io/srm-sim/', thumbnail: '', icon: 'D', bg: '#C92100', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 30000000, isDemo: false },
-            { id: 6, name: 'VCF Global Operations Dashboard', author: 'ops_lead', email: 'ops@vmware.com', desc: 'Unified monitoring dashboard for multi-domain VCF deployments.', category: 'Dashboard', github: 'https://vmware.github.io/vcf-dash/', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', icon: 'G', bg: '#007CBB', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 25000000, isDemo: false },
-            { id: 7, name: 'PowerCLI Script Generator Tools', author: 'script_master', email: 'script@vmware.com', desc: 'Generates PowerCLI snippets for vSphere VM automation.', category: 'Tools', github: 'https://vmware.github.io/powercli-gen/', thumbnail: '', icon: 'T', bg: '#004C6D', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 15000000, isDemo: false },
-            { id: 8, name: 'Ansible Playbook Code Repo', author: 'code_wiz', email: 'code@vmware.com', desc: 'Infrastructure as Code repo for VCF SDDC Manager deployment.', category: 'Code', github: 'https://github.com/vmware/ansible-vcf', thumbnail: '', icon: 'C', bg: '#224D5E', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 10000000, isDemo: false },
-            { id: 9, name: 'vSphere Upgrade Simulator', author: 'vm_expert', email: 'vm_expert@vmware.com', desc: 'Interactive HTML simulator for vSphere upgrade paths. Test your skills.', category: 'Compute', github: '', htmlContent: '<h1>vSphere Upgrade Simulator Running</h1><p>Full interactive demo simulation loaded.</p>', fileName: 'vsphere_sim.html', thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', icon: 'V', bg: '#660092', status: 'approved', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now() - 20000000, isDemo: true }
-        ];
-
-        let selectedRating = 5;
-
-        const state = {
-            currentUser: 'user', activeAppId: null,
-            apps: (() => { 
-                try {
-                    const data = localStorage.getItem('vmapp_data_final'); 
-                    if (!data) return DEFAULT_APPS;
-                    const parsed = JSON.parse(data);
-                    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_APPS;
-                    const validApproved = parsed.filter(a => a.status === 'approved' && !a.isDemo);
-                    if (validApproved.length === 0) return DEFAULT_APPS;
-                    return parsed;
-                } catch(e) { return DEFAULT_APPS; }
-            })()
-        };
+        const state = { apps: JSON.parse(localStorage.getItem('vmapp_data_final') || '[]') };
 
         function saveState() {
-            try {
-                localStorage.setItem('vmapp_data_final', JSON.stringify(state.apps));
-            } catch (e) {
-                showToast('msg_file_size', 'alert-danger', 'error-standard');
-            }
+            localStorage.setItem('vmapp_data_final', JSON.stringify(state.apps));
+            updateAdminStats(); renderPendingTable(); renderAllAppsTable();
         }
 
         window.addEventListener('storage', (e) => {
             if(e.key === 'vmapp_data_final') {
                 try { state.apps = JSON.parse(e.newValue || '[]'); } catch(err){}
-                renderCatalog(); renderDemoRoom(); if(window.location.hash === '#myapps') renderMyApps();
+                updateAdminStats(); renderPendingTable(); renderAllAppsTable();
+            }
+            if(e.key === 'vmapp_access_logs') {
+                renderAccessLogs();
             }
         });
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                closeIframeModal();
-                closeModal();
+                closeAdminPreview();
             }
         });
-
-        let isDarkMode = localStorage.getItem('vmapp_theme') === 'dark';
-        function applyTheme() {
-            document.getElementById('app-body').setAttribute('cds-theme', isDarkMode ? 'dark' : 'light');
-            document.getElementById('theme-icon').setAttribute('shape', isDarkMode ? 'sun' : 'moon');
-        }
-        function toggleTheme() { isDarkMode = !isDarkMode; localStorage.setItem('vmapp_theme', isDarkMode ? 'dark' : 'light'); applyTheme(); }
-
-        function handleRouting() {
-            const hash = window.location.hash.replace('#', '') || 'catalog';
-            if (!['catalog', 'demoroom', 'submit', 'myapps'].includes(hash)) { window.location.hash = 'catalog'; return; }
-            ['catalog', 'demoroom', 'submit', 'myapps'].forEach(id => {
-                const el = document.getElementById('view-' + id);
-                const nav = document.getElementById('nav-' + id);
-                if(el) el.classList.add('hidden-view');
-                if(nav) nav.classList.remove('active');
-            });
-            
-            const targetView = document.getElementById('view-' + hash);
-            const targetNav = document.getElementById('nav-' + hash);
-            if(targetView) targetView.classList.remove('hidden-view');
-            if(targetNav) targetNav.classList.add('active');
-            
-            window.scrollTo(0, 0); 
-            
-            if(hash === 'catalog') renderCatalog();
-            if(hash === 'demoroom') renderDemoRoom();
-            if(hash === 'myapps') renderMyApps();
-        }
-
-        window.addEventListener('hashchange', handleRouting);
-
-        let toastTimer;
-        function showToast(msgKey, type = 'alert-info', icon = 'info-circle') {
-            clearTimeout(toastTimer);
-            const toast = document.getElementById('toast-container'), toastBox = document.getElementById('toast-alert-box');
-            document.getElementById('toast-msg').innerText = t(msgKey); document.getElementById('toast-icon').setAttribute('shape', icon);
-            toastBox.className = `alert alert-app-level ${type}`;
-            toast.classList.remove('hidden-view');
-            toastTimer = setTimeout(() => { toast.classList.add('hidden-view'); }, 3500);
-        }
-        function closeToast() { document.getElementById('toast-container').classList.add('hidden-view'); }
-
-        function setSelectRating(val, boxId = 'modal-star-box') {
-            selectedRating = val;
-            const items = document.querySelectorAll('#' + boxId + ' .star-item');
-            items.forEach((item, idx) => {
-                if (idx < val) {
-                    item.classList.add('active');
-                    item.style.color = '#f5a623';
-                } else {
-                    item.classList.remove('active');
-                    item.style.color = '#d3d3d3';
-                }
-            });
-        }
-
-        function submitRatingOnly() {
-            const index = state.apps.findIndex(a => a.id === state.activeAppId);
-            if (index > -1) {
-                const app = state.apps[index];
-                const currentCount = app.ratingCount || 1;
-                const currentRating = app.rating || 5.0;
-                const newRating = ((currentRating * currentCount) + selectedRating) / (currentCount + 1);
-                
-                app.rating = parseFloat(newRating.toFixed(1));
-                app.ratingCount = currentCount + 1;
-
-                saveState();
-                showToast('별점이 성공적으로 등록되었습니다!', 'alert-success', 'check-circle');
-                if(window.location.hash === '#demoroom') renderDemoRoom(); else renderCatalog();
-            }
-        }
-
-        function renderAppGrid(containerId, emptyId, searchInputId, filterCatId, filterSortId, isDemoTarget) {
-            const grid = document.getElementById(containerId), empty = document.getElementById(emptyId);
-            if(!grid || !empty) return;
-
-            const query = document.getElementById(searchInputId) ? document.getElementById(searchInputId).value.toLowerCase() : '';
-            const cat = document.getElementById(filterCatId) ? document.getElementById(filterCatId).value : 'All';
-            const sort = document.getElementById(filterSortId) ? document.getElementById(filterSortId).value : 'popular';
-
-            let filtered = state.apps.filter(app => app.status === 'approved' && !!app.isDemo === isDemoTarget &&
-                app.name.toLowerCase().includes(query) && (cat === 'All' || app.category === cat)
-            );
-
-            filtered.sort((a, b) => {
-                if (sort === 'popular') return (b.launchCount || 0) - (a.launchCount || 0);
-                if (sort === 'rating') return (b.rating || 0) - (a.rating || 0);
-                if (sort === 'newest') return (b.createdAt || 0) - (a.createdAt || 0);
-                if (sort === 'name') return a.name.localeCompare(b.name);
-                return 0;
-            });
-
-            if (filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden-view'); } 
-            else {
-                empty.classList.add('hidden-view');
-                grid.innerHTML = filtered.map(app => {
-                    let thumbSource = '';
-                    if (app.thumbnail && app.thumbnail.trim() !== '') {
-                        thumbSource = sanitizeURL(app.thumbnail);
-                    } else if (app.github && !app.isDemo) {
-                        thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
-                    }
-                    
-                    const bannerHTML = thumbSource !== '' 
-                        ? `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">` 
-                        : `<span class="card-banner-fallback">${escapeHTML(app.icon)}</span>`;
-                        
-                    const clickAction = isDemoTarget ? `runDemoDirectly(${app.id})` : `openAppModal(${app.id})`;
-
-                    return `
-                    <div class="clr-col-12 clr-col-md-6 clr-col-lg-4" style="margin-bottom: 32px;">
-                        <a href="javascript:void(0)" class="card clickable" onclick="${clickAction}" style="text-decoration: none; color: inherit; display: block; height: 100%;">
-                            <div class="card-banner-wrapper" style="background: ${escapeHTML(app.bg || '#002538')};">
-                                ${bannerHTML}
-                            </div>
-                            <div class="card-block">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <div>
-                                        <span class="label label-info">${t('cat_' + getCatKey(app.category))}</span>
-                                        ${app.isDemo ? '<span class="label label-warning">Simulator</span>' : ''}
-                                    </div>
-                                    <span style="font-size: 12px; font-weight: bold; color: #f5a623;"><cds-icon shape="star" class="rating-star" solid></cds-icon>${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1})</span>
-                                </div>
-                                <h3 class="card-title" style="font-size: 16px; margin-bottom: 6px; font-weight: 600;">${escapeHTML(app.name)}</h3>
-                                <div style="display: flex; justify-content: space-between; color: #737373; font-size: 12px; margin-bottom: 12px;">
-                                    <span>By. ${escapeHTML(app.author)}</span>
-                                    <span><cds-icon shape="line-chart" size="sm"></cds-icon> ${app.launchCount || 0}</span>
-                                </div>
-                                <p class="card-text" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #555; line-height: 1.5;">${escapeHTML(app.desc)}</p>
-                            </div>
-                        </a>
-                    </div>
-                `}).join('');
-            }
-        }
-
-        function renderCatalog() { renderAppGrid('catalog-grid', 'empty-state-catalog', 'search-input', 'filter-category', 'filter-sort', false); }
-        function renderDemoRoom() { renderAppGrid('demoroom-grid', 'empty-state-demo', 'search-input-demo', 'filter-category-demo', null, true); }
-
-        function renderMyApps() {
-            const tbody = document.getElementById('myapps-table-body');
-            if(!tbody) return;
-            const myApps = state.apps.filter(app => app.author === state.currentUser || app.email === state.currentUser + '@company.com').sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
-            
-            if (myApps.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 32px; color: #737373;">${t('empty_my')}</td></tr>`; return;
-            }
-            tbody.innerHTML = myApps.map(app => {
-                const date = app.createdAt ? new Date(app.createdAt).toLocaleDateString(currentLang === 'ko' ? 'ko-KR' : 'en-US') : '-';
-                let statusBadge = app.status === 'approved' ? '<span class="label label-success">Approved</span>' : 
-                                 (app.status === 'pending' ? '<span class="label label-warning">Pending</span>' : '<span class="label label-danger">Rejected</span>');
-                let typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
-                return `
-                    <tr>
-                        <td class="left"><b>${escapeHTML(app.name)}</b></td><td class="left">${typeBadge}</td><td class="left">${date}</td><td class="left">${t('cat_' + getCatKey(app.category))}</td><td class="left">${statusBadge}</td>
-                    </tr>`;
-            }).join('');
-        }
-
-        function toggleDemoMode() {
-            const isDemo = document.getElementById('form-is-demo').checked;
-            const urlInput = document.getElementById('form-github');
-            const urlGroup = document.getElementById('url-input-group');
-            const fileGroup = document.getElementById('file-input-group');
-            
-            if(isDemo) {
-                urlGroup.classList.add('hidden-view'); urlInput.required = false; urlInput.value = '';
-                fileGroup.classList.remove('hidden-view');
-            } else {
-                urlGroup.classList.remove('hidden-view'); urlInput.required = true;
-                fileGroup.classList.add('hidden-view'); document.getElementById('form-html-file').value = '';
-                document.getElementById('file-name-display').innerText = '';
-            }
-        }
-
-        function updateFileName(input) {
-            if (input.files && input.files.length > 0) {
-                document.getElementById('file-name-display').innerText = input.files[0].name;
-            } else {
-                document.getElementById('file-name-display').innerText = '';
-            }
-        }
-
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            const isDemo = document.getElementById('form-is-demo').checked;
-            let targetUrl = document.getElementById('form-github').value;
-            let emailVal = document.getElementById('form-email').value;
-            let appId = Date.now();
-            let fileName = '';
-
-            if (isDemo) {
-                const fileInput = document.getElementById('form-html-file');
-                if (fileInput.files.length === 0) { alert('HTML 파일을 선택해주세요.'); return; }
-                const file = fileInput.files[0];
-                
-                if (file.size > 100 * 1024 * 1024) {
-                    showToast('msg_file_size', 'alert-danger', 'error-standard');
-                    return;
-                }
-                
-                fileName = file.name;
-                const htmlContent = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsText(file);
-                });
-
-                await saveFileToIDB(appId, htmlContent);
-            }
-
-            state.apps.push({
-                id: appId, 
-                name: document.getElementById('form-name').value, 
-                email: emailVal,
-                github: targetUrl, fileName: fileName, isDemo: isDemo,
-                thumbnail: document.getElementById('form-thumb').value,
-                desc: document.getElementById('form-desc').value, 
-                category: document.getElementById('form-category').value,
-                author: emailVal ? emailVal.split('@')[0] : state.currentUser, 
-                status: 'pending', 
-                icon: document.getElementById('form-name').value.charAt(0).toUpperCase(),
-                bg: '#002538', launchCount: 0, rating: 5.0, ratingCount: 1, createdAt: Date.now()
-            });
-            
-            saveState(); document.getElementById('submit-form').reset(); toggleDemoMode();
-            window.location.hash = 'myapps'; showToast('msg_submit', 'alert-success', 'check-circle'); 
-        }
-
-        function openAppModal(id) {
-            const app = state.apps.find(a => a.id === id);
-            if (!app) return;
-            state.activeAppId = id;
-            document.getElementById('modal-title').innerText = app.name || '';
-            document.getElementById('modal-author').innerText = `By. ${app.author || ''}`;
-            document.getElementById('modal-desc').innerText = app.desc || '';
-            document.getElementById('modal-category-badge').innerText = t('cat_' + getCatKey(app.category));
-            document.getElementById('modal-launches').innerText = app.launchCount || 0;
-            document.getElementById('modal-rating').innerText = app.rating ? app.rating.toFixed(1) : '5.0';
-            document.getElementById('modal-rating-count').innerText = app.ratingCount || 1;
-            
-            setSelectRating(5, 'modal-star-box');
-
-            if(app.isDemo) { 
-                document.getElementById('modal-demo-badge').classList.remove('hidden-view');
-                document.getElementById('modal-security-text').innerText = t('safe_file');
-            } else { 
-                document.getElementById('modal-demo-badge').classList.add('hidden-view');
-                document.getElementById('modal-security-text').innerText = t('safe_url');
-            }
-
-            const btnText = document.getElementById('modal-launch-text');
-            const btnIcon = document.getElementById('modal-launch-icon');
-            btnText.innerText = t('btn_launch');
-            btnIcon.setAttribute('shape', app.isDemo ? 'window-max' : 'pop-out');
-            
-            let thumbSource = '';
-            if (app.thumbnail && app.thumbnail.trim() !== '') thumbSource = sanitizeURL(app.thumbnail);
-            else if (app.github && !app.isDemo) thumbSource = `https://image.thum.io/get/width/600/crop/400/noanimate/${sanitizeURL(app.github)}`;
-
-            const bannerContainer = document.getElementById('modal-banner-container');
-            bannerContainer.style.background = app.bg || '#002538';
-            if(thumbSource !== '') {
-                bannerContainer.innerHTML = `<img src="${thumbSource}" alt="banner" onerror="this.parentElement.innerHTML='<span class=\"card-banner-fallback\">${escapeHTML(app.icon)}</span>'">`;
-            } else {
-                bannerContainer.innerHTML = `<span class="card-banner-fallback">${escapeHTML(app.icon || '')}</span>`;
-            }
-            
-            document.getElementById('app-modal').classList.remove('hidden-view');
-        }
-
-        function closeModal() { document.getElementById('app-modal').classList.add('hidden-view'); state.activeAppId = null; }
-
-        async function runDemoDirectly(id) {
-            state.activeAppId = id;
-            await launchApp();
-        }
-
-        async function launchApp() {
-            const index = state.apps.findIndex(a => a.id === state.activeAppId);
-            if (index > -1) {
-                const app = state.apps[index];
-                app.launchCount = (app.launchCount || 0) + 1; 
-
-                const currentCount = app.ratingCount || 1;
-                const currentRating = app.rating || 5.0;
-                const newRating = ((currentRating * currentCount) + selectedRating) / (currentCount + 1);
-                
-                app.rating = parseFloat(newRating.toFixed(1));
-                app.ratingCount = currentCount + 1;
-
-                saveState(); 
-                
-                if(app.isDemo) {
-                    document.getElementById('app-modal').classList.add('hidden-view');
-                    document.getElementById('iframe-modal-title').innerText = app.name;
-                    setSelectRating(5, 'header-star-box');
-                    const iframe = document.getElementById('iframe-content');
-                    
-                    const fileContent = await getFileFromIDB(app.id);
-                    
-                    if(fileContent) { 
-                        iframe.removeAttribute('src'); 
-                        const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
-                        iframe.src = URL.createObjectURL(blob);
-                    }
-                    else if(app.htmlContent) { 
-                        iframe.removeAttribute('src'); 
-                        const blob = new Blob([app.htmlContent], { type: 'text/html;charset=utf-8' });
-                        iframe.src = URL.createObjectURL(blob);
-                    }
-                    else { iframe.removeAttribute('srcdoc'); iframe.src = sanitizeURL(app.github); }
-                    
-                    document.getElementById('iframe-modal').classList.remove('hidden-view');
-                } else {
-                    const safeUrl = sanitizeURL(app.github);
-                    if(safeUrl === '#') { showToast('msg_sec_err', 'alert-danger', 'error-standard'); return; }
-                    window.open(safeUrl, '_blank'); closeModal();
-                }
-
-                if(window.location.hash === '#demoroom') renderDemoRoom(); else renderCatalog();
-            }
-        }
-
-        function closeIframeModal() { 
-            document.getElementById('iframe-modal').classList.add('hidden-view'); 
-            const iframe = document.getElementById('iframe-content');
-            iframe.src = ''; 
-            iframe.removeAttribute('srcdoc');
-            state.activeAppId = null; 
-        }
-        
-        function shareApp() {
-            const app = state.apps.find(a => a.id === state.activeAppId);
-            if(!app) return;
-            const safeUrl = sanitizeURL(app.github);
-            const shareText = `[KR VCF Mini App] ${app.name}\n${app.desc}\n👉 Link: ${safeUrl}`;
-            if (navigator.share) navigator.share({ title: app.name, text: app.desc, url: safeUrl }).catch(e=>{});
-            else navigator.clipboard.writeText(shareText).then(() => showToast('msg_copied', 'alert-info', 'check-circle'));
-        }
 
         document.addEventListener('DOMContentLoaded', () => { 
-            applyTheme(); applyI18n();
-            document.getElementById('current-user-display').innerText = state.currentUser;
-            handleRouting();
-            renderCatalog();
-            logAccess('index.html (Marketplace Catalog)');
+            updateAdminStats(); renderPendingTable(); renderAllAppsTable();
+            logAdminAccess();
         });
+
+        let toastTimer;
+        function showToast(msg, type = 'alert-success') {
+            clearTimeout(toastTimer);
+            const toast = document.getElementById('toast-container'), toastBox = document.getElementById('toast-alert-box');
+            document.getElementById('toast-msg').innerText = msg;
+            toastBox.className = `alert alert-app-level ${type}`;
+            toast.classList.remove('hidden-view');
+            toastTimer = setTimeout(() => { toast.classList.add('hidden-view'); }, 3000);
+        }
+
+        function renderAccessLogs() {
+            const tbody = document.getElementById('access-log-table-body');
+            if(!tbody) return;
+            const logs = JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]');
+            document.getElementById('stat-visitors').innerText = logs.length;
+
+            if (logs.length > 0) {
+                tbody.innerHTML = logs.slice(0, 100).map(log => `
+                    <tr>
+                        <td class="left"><b>${escapeHTML(log.timestamp)}</b></td>
+                        <td class="left"><span class="label label-info">${escapeHTML(log.ip)}</span></td>
+                        <td class="left"><code>${escapeHTML(log.page)}</code></td>
+                        <td class="left" style="font-size: 11px; color: #666; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${escapeHTML(log.userAgent)}
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #737373;">접속 로그 기록이 없습니다.</td></tr>`;
+            }
+        }
+
+        function clearLogs() {
+            if(confirm('모든 유저 접속 IP 로그를 삭제하시겠습니까?')) {
+                localStorage.removeItem('vmapp_access_logs');
+                renderAccessLogs();
+                showToast('접속 로그가 초기화되었습니다.');
+            }
+        }
+
+        function resetAllStats() {
+            if(confirm('모든 앱의 실행 횟수를 0회로 바꾸고 별점을 5.0(1명)으로 초기화하시겠습니까?')) {
+                state.apps.forEach(app => {
+                    app.launchCount = 0;
+                    app.rating = 5.0;
+                    app.ratingCount = 1;
+                });
+                saveState();
+                showToast('모든 앱의 뷰 수 및 별점 통계가 완전히 초기화되었습니다.');
+            }
+        }
+
+        function renderPendingTable() {
+            const tableContainer = document.getElementById('admin-table-container'), tbody = document.getElementById('admin-table-body');
+            const emptyMsg = document.getElementById('admin-empty');
+            if(!tbody) return;
+            const pendingApps = state.apps.filter(app => app.status === 'pending');
+            
+            if (pendingApps.length > 0) {
+                emptyMsg.classList.add('hidden-view'); tableContainer.classList.remove('hidden-view');
+                tbody.innerHTML = pendingApps.map(app => {
+                    const thumbBadge = (app.thumbnail && app.thumbnail.trim() !== '') 
+                        ? '<span class="label label-success">Custom Thumb</span><br>' 
+                        : '<span class="label label-info">Auto Thumb</span><br>';
+                    
+                    let sourceText = '';
+                    if (app.isDemo) {
+                        sourceText = `<button class="btn btn-sm btn-link" onclick="previewAdminDemo(${app.id})" style="padding:0; margin:0;"><cds-icon shape="window-max"></cds-icon> 미리보기 (${escapeHTML(app.fileName || 'file.html')})</button>`;
+                    } else {
+                        sourceText = `<a href="${escapeHTML(app.github)}" target="_blank">${escapeHTML(app.github)}</a>`;
+                    }
+
+                    const typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
+                    
+                    return `
+                    <tr>
+                        <td class="left"><b>${escapeHTML(app.name)}</b></td>
+                        <td class="left" style="max-width: 280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            ${thumbBadge}
+                            ${sourceText}
+                        </td>
+                        <td class="left">${typeBadge}<span class="badge">${escapeHTML(app.category)}</span></td>
+                        <td class="left">${escapeHTML(app.author)} ${app.email ? `<br><small style="color:#737373;">${escapeHTML(app.email)}</small>` : ''}</td>
+                        <td class="right" style="min-width: 140px;">
+                            <button class="btn btn-sm btn-success-outline" onclick="adminAction(${app.id}, 'approved')">승인</button>
+                            <button class="btn btn-sm btn-danger-outline" onclick="adminAction(${app.id}, 'rejected')">반려</button>
+                        </td>
+                    </tr>
+                `}).join('');
+            } else {
+                tableContainer.classList.add('hidden-view'); emptyMsg.classList.remove('hidden-view');
+            }
+        }
+
+        async function previewAdminDemo(id) {
+            const app = state.apps.find(a => a.id === id);
+            if(!app) return;
+            const iframe = document.getElementById('admin-iframe-preview');
+            document.getElementById('admin-preview-title').innerText = `[Preview] ${app.name}`;
+            
+            const fileContent = await getFileFromIDB(app.id);
+            if(fileContent) {
+                iframe.removeAttribute('src');
+                const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
+                iframe.src = URL.createObjectURL(blob);
+            } else if(app.htmlContent) {
+                iframe.removeAttribute('src');
+                const blob = new Blob([app.htmlContent], { type: 'text/html;charset=utf-8' });
+                iframe.src = URL.createObjectURL(blob);
+            } else {
+                iframe.src = app.github;
+            }
+            document.getElementById('admin-preview-modal').classList.remove('hidden-view');
+        }
+
+        function closeAdminPreview() {
+            document.getElementById('admin-preview-modal').classList.add('hidden-view');
+            document.getElementById('admin-iframe-preview').src = '';
+        }
+
+        function renderAllAppsTable() {
+            const tbody = document.getElementById('all-apps-table-body');
+            if(!tbody) return;
+            if (state.apps.length > 0) {
+                tbody.innerHTML = state.apps.sort((a,b) => b.createdAt - a.createdAt).map(app => {
+                    let statusBadge = app.status === 'approved' ? '<span class="label label-success">Approved</span>' : 
+                                     (app.status === 'pending' ? '<span class="label label-warning">Pending</span>' : '<span class="label label-danger">Rejected</span>');
+                    let typeBadge = app.isDemo ? '<span class="label label-warning" style="margin-right:4px;">Demo</span>' : '<span class="label" style="margin-right:4px;">App</span>';
+                    return `
+                        <tr>
+                            <td class="left"><b>${escapeHTML(app.name)}</b></td>
+                            <td class="left">${typeBadge}${escapeHTML(app.category)}</td>
+                            <td class="left">⭐ ${app.rating ? app.rating.toFixed(1) : '5.0'} (${app.ratingCount || 1}명)</td>
+                            <td class="left">${escapeHTML(app.author)}</td>
+                            <td class="left">${statusBadge}</td>
+                            <td class="right" style="min-width: 120px;">
+                                <button class="btn btn-sm btn-link" onclick="resetRating(${app.id})"><cds-icon shape="refresh"></cds-icon> 리셋</button>
+                                <button class="btn btn-sm btn-link" style="color:var(--cds-global-color-red-700, #c92100); padding:0; min-width:auto;" onclick="deleteApp(${app.id})"><cds-icon shape="trash"></cds-icon> 삭제</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #737373;">등록된 앱이 없습니다.</td></tr>`;
+            }
+        }
+
+        function resetRating(id) {
+            const index = state.apps.findIndex(a => a.id === id);
+            if (index > -1) {
+                state.apps[index].rating = 5.0;
+                state.apps[index].ratingCount = 1;
+                saveState();
+                showToast('별점이 초기화되었습니다.');
+            }
+        }
+
+        function updateAdminStats() {
+            let approved = 0, pending = 0, launches = 0;
+            state.apps.forEach(app => {
+                if(app.status === 'approved') { approved++; launches += (app.launchCount || 0); }
+                if(app.status === 'pending') { pending++; }
+            });
+            document.getElementById('stat-approved').innerText = approved;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-launches').innerText = launches;
+        }
+
+        function adminAction(id, action) {
+            const index = state.apps.findIndex(a => a.id === id);
+            if (index > -1) {
+                state.apps[index].status = action;
+                if (action === 'approved') {
+                    const colors = ['#002538', '#004c6d', '#007cbb', '#0095d3', '#224d5e'];
+                    state.apps[index].bg = colors[Math.floor(Math.random() * colors.length)];
+                    showToast('성공적으로 승인되었습니다.');
+                } else { showToast('앱 신청이 반려되었습니다.', 'alert-danger'); }
+                saveState();
+            }
+        }
+
+        function deleteApp(id) {
+            if(confirm('정말 이 앱을 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.')) {
+                state.apps = state.apps.filter(app => app.id !== id);
+                saveState(); showToast('앱이 안전하게 삭제되었습니다.', 'alert-success');
+            }
+        }
+
+        function exportData() {
+            const exportObj = {
+                apps: state.apps,
+                accessLogs: JSON.parse(localStorage.getItem('vmapp_access_logs') || '[]')
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `kr_vcf_market_full_backup_${new Date().getTime()}.json`);
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click(); downloadAnchorNode.remove();
+            showToast('전체 앱 데이터 및 유저 IP 로그가 백업되었습니다.');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        state.apps = imported; saveState();
+                    } else if (imported.apps) {
+                        state.apps = imported.apps; saveState();
+                        if (imported.accessLogs) {
+                            localStorage.setItem('vmapp_access_logs', JSON.stringify(imported.accessLogs));
+                            renderAccessLogs();
+                        }
+                    } else { throw new Error("Invalid format"); }
+                    showToast('데이터가 성공적으로 복원되었습니다.');
+                } catch(err) { showToast('잘못된 데이터 형식입니다.', 'alert-danger'); }
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
     </script>
 </body>
 </html>
