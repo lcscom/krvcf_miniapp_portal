@@ -96,7 +96,6 @@
                 <span class="title" style="color: white;"><cds-icon shape="administrator" size="md" style="margin-right: 8px;"></cds-icon> KR VCF Mini App Admin</span>
             </div>
             <div class="header-actions">
-                <button class="btn btn-sm btn-link nav-icon" onclick="changePasswordPrompt()" style="color: white; margin-right: 8px;"><cds-icon shape="key"></cds-icon> 암호 변경</button>
                 <a href="/" class="nav-link" style="color: white; margin-right: 16px;">일반 페이지로 이동</a>
             </div>
         </header>
@@ -214,10 +213,10 @@
         const DB_VERSION = 1;
         const STORE_NAME = 'htmlFiles';
 
-        // 🔒 'Dlcjdtn01'을 SHA-256으로 해시 변환한 정답 해시값
-        const DEFAULT_PASS_HASH = '7c4aed46f0414eb1f074d0d3c0133c467a84c2f605fa81a28a391515bb5ec047';
+        // 🔒 'Dlcjdtn01!'를 SHA-256으로 하드코딩 변환한 해시값
+        const HARDCODED_SHA256_HASH = 'f53cfccbc7fc5eec2a9b33a59d9f52f75ef3c59bc8bbd36a31cbe904fbbeec05';
 
-        // 🔒 텍스트 평문을 SHA-256 16진수 문자열로 암호화 인코딩하는 유틸 함수
+        // 🔒 SHA-256 인코딩 변환 유틸 함수
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -225,37 +224,16 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        function getStoredHash() {
-            return localStorage.getItem('vmapp_admin_hash') || DEFAULT_PASS_HASH;
-        }
-
         async function verifyAdminPass(e) {
             e.preventDefault();
             const inputPass = document.getElementById('admin-pass-input').value;
             const inputHash = await sha256(inputPass);
 
-            if (inputHash === getStoredHash()) {
+            if (inputHash.toLowerCase() === HARDCODED_SHA256_HASH.toLowerCase()) {
                 document.getElementById('auth-overlay').classList.add('hidden-view');
                 showToast('관리자 인증에 성공하였습니다.');
             } else {
                 alert('비밀번호가 올바르지 않습니다.');
-            }
-        }
-
-        async function changePasswordPrompt() {
-            const currentPass = prompt('현재 비밀번호를 입력하세요:');
-            if (!currentPass) return;
-            
-            const currentHash = await sha256(currentPass);
-            if (currentHash === getStoredHash()) {
-                const newPass = prompt('새로운 비밀번호를 입력하세요:');
-                if (newPass && newPass.trim() !== '') {
-                    const newHash = await sha256(newPass.trim());
-                    localStorage.setItem('vmapp_admin_hash', newHash);
-                    showToast('비밀번호가 안전하게 SHA-256 변환되어 변경되었습니다.');
-                }
-            } else {
-                alert('현재 비밀번호가 일치하지 않습니다.');
             }
         }
 
