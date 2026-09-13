@@ -32,15 +32,16 @@
             border: 1px solid var(--cds-global-color-gray-200, #e2e2e2);
             border-radius: 8px; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); margin-top: 0; background: var(--cds-global-color-gray-0, #ffffff);
-            position: relative;
+            position: relative; cursor: pointer; user-select: none;
         }
         .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.12); border-color: #007cbb; }
+        .card.clickable:active { transform: translateY(-1px); }
 
         .card-banner-wrapper {
             position: relative; width: 100%; height: 160px; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
-        .card-banner-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+        .card-banner-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; pointer-events: none; }
         .card.clickable:hover .card-banner-wrapper img { transform: scale(1.06); }
         .card-banner-fallback { font-size: 48px; font-weight: 800; color: rgba(255, 255, 255, 0.95); text-shadow: 0 2px 6px rgba(0,0,0,0.3); user-select: none; }
 
@@ -49,7 +50,7 @@
             background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
             color: white; font-size: 11px; font-weight: 800; padding: 3px 8px;
             border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            letter-spacing: 0.5px; animation: pulseNew 2s infinite;
+            letter-spacing: 0.5px; animation: pulseNew 2s infinite; pointer-events: none;
         }
         @keyframes pulseNew { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
@@ -181,7 +182,7 @@
                     <div>
                         <button class="btn btn-outline" type="button" onclick="closeModal()" data-i18n="btn_close">닫기</button>
                         <button class="btn btn-primary" type="button" id="modal-launch-btn" onclick="launchApp()">
-                            <cds-icon shape="pop-out" style="margin-right: 4px;"></cds-icon> <span>앱 실행</span>
+                            <cds-icon shape="pop-out" id="modal-launch-icon" style="margin-right: 4px;"></cds-icon> <span id="modal-launch-text" data-i18n="btn_launch">앱 실행</span>
                         </button>
                     </div>
                 </div>
@@ -328,7 +329,7 @@
                             <p class="p5" style="color: #666; margin-bottom: 24px;" data-i18n="sub_desc">유용한 스크립트나 앱을 사내에 공유하세요. 승인 후 반영됩니다.</p>
                             
                             <form class="clr-form clr-form-horizontal" onsubmit="handleFormSubmit(event)" id="submit-form">
-                                <!-- 🔥 앱 유형 선택 라디오 폼 복구 -->
+                                <!-- 🔴 게시 위치 선택 라디오 버튼 -->
                                 <div class="clr-form-control clr-row">
                                     <label class="clr-control-label clr-col-12 clr-col-md-3 required">게시 위치 선택</label>
                                     <div class="clr-control-container clr-col-12 clr-col-md-9">
@@ -361,7 +362,7 @@
                                         <div class="clr-input-wrapper" style="width: 100%;">
                                             <input type="url" id="form-github" class="clr-input" placeholder="https://..." required style="width: 100%;">
                                         </div>
-                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;">* GitHub Raw HTML 주소(예: https://raw...)를 직접 입력할 수도 있습니다.</span>
+                                        <span id="form-url-desc" style="font-size: 11px; color: #737373; display: none; margin-top: 4px;">* GitHub Raw HTML 주소(예: https://raw...)를 입력해 직접 연동할 수 있습니다.</span>
                                     </div>
                                 </div>
 
@@ -373,7 +374,7 @@
                                             <input type="file" id="form-html-file" accept=".html,.htm" style="display:none;" onchange="updateFileName(this)">
                                         </label>
                                         <span id="file-name-display" style="font-size: 13px; margin-left: 8px; color: #007cbb; font-weight: bold;"></span>
-                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* HTML 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 적어주세요.</span>
+                                        <span style="display:block; font-size: 11px; color: #737373; margin-top: 4px;">* 파일이 없는 경우 위의 Target URL에 GitHub Raw 주소를 입력하세요 (최대 100MB).</span>
                                     </div>
                                 </div>
 
@@ -559,7 +560,8 @@
 
     <script>
         const DB_NAME = 'VCFMarketDB';
-        const DB_VERSION = 1;
+        // 🛠️ DB_VERSION 판올림: 로컬 브라우저에 이미 스토어 없이 생성된 IndexedDB 강제 갱신
+        const DB_VERSION = 2; 
         const STORE_NAME = 'htmlFiles';
 
         const TARGET_PASS = 'Dlcjdtn01!';
@@ -617,9 +619,16 @@
             switchTab('catalog');
         }
 
+        // 🛠️ IndexedDB onupgradeneeded 적용: 스토어 미생성 버그 해결
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
                 request.onsuccess = (e) => resolve(e.target.result);
                 request.onerror = (e) => reject(e.target.error);
             });
@@ -629,11 +638,13 @@
             try {
                 const db = await openDB();
                 return new Promise((resolve, reject) => {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    const req = store.put(content, id);
-                    req.onsuccess = () => resolve();
-                    req.onerror = (e) => reject(e.target.error);
+                    try {
+                        const tx = db.transaction(STORE_NAME, 'readwrite');
+                        const store = tx.objectStore(STORE_NAME);
+                        const req = store.put(content, id);
+                        req.onsuccess = () => resolve();
+                        req.onerror = (e) => reject(e.target.error);
+                    } catch(err) { reject(err); }
                 });
             } catch(e) { console.warn('IDB save error', e); }
         }
@@ -642,11 +653,13 @@
             try {
                 const db = await openDB();
                 return new Promise((resolve, reject) => {
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
-                    const req = store.get(id);
-                    req.onsuccess = (e) => resolve(e.target.result);
-                    req.onerror = (e) => reject(e.target.error);
+                    try {
+                        const tx = db.transaction(STORE_NAME, 'readonly');
+                        const store = tx.objectStore(STORE_NAME);
+                        const req = store.get(id);
+                        req.onsuccess = (e) => resolve(e.target.result);
+                        req.onerror = (e) => reject(e.target.error);
+                    } catch(err) { reject(err); }
                 });
             } catch(e) { return null; }
         }
@@ -1068,7 +1081,7 @@
             }).join('');
         }
 
-        // 🔥 앱 유형 라디오 버튼 토글 폼 필드 연동
+        // 🔥 폼 라디오 버튼 전환 함수
         function toggleFormDisplayType() {
             const selectedType = document.querySelector('input[name="app-target-type"]:checked')?.value || 'catalog';
             const urlInput = document.getElementById('form-github');
@@ -1174,12 +1187,10 @@
             const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
             document.getElementById('modal-security-text').innerText = isDemoType ? t('safe_file') : t('safe_url');
 
-            // 🎯 ID 없는 버튼 요소의 내용을 직접 덮어쓰기하여 오류 차단
-            const btn = document.getElementById('modal-launch-btn');
-            if (btn) {
-                const iconShape = isDemoType ? 'window-max' : 'pop-out';
-                btn.innerHTML = `<cds-icon shape="${iconShape}" style="margin-right: 4px;"></cds-icon> <span>${t('btn_launch')}</span>`;
-            }
+            const btnText = document.getElementById('modal-launch-text');
+            const btnIcon = document.getElementById('modal-launch-icon');
+            if(btnText) btnText.innerText = t('btn_launch');
+            if(btnIcon) btnIcon.setAttribute('shape', isDemoType ? 'window-max' : 'pop-out');
             
             let thumbSource = '';
             if (app.thumbnail && app.thumbnail.trim() !== '') thumbSource = sanitizeURL(app.thumbnail);
@@ -1198,13 +1209,14 @@
             document.getElementById('app-modal').classList.remove('hidden-view');
         }
 
-        function closeModal() { document.getElementById('app-modal').classList.add('hidden-view'); }
+        function closeModal() { document.getElementById('app-modal').classList.add('hidden-view'); state.activeAppId = null; }
 
         async function runDemoDirectly(id) {
             state.activeAppId = id;
             await launchApp();
         }
 
+        // 🛠️ IDB 예외 처리 방어 로직 적용
         async function launchApp() {
             const index = state.apps.findIndex(a => a.id === state.activeAppId);
             if (index > -1) {
@@ -1223,14 +1235,19 @@
                 const isDemoType = app.isDemo || (app.github && String(app.github).toLowerCase().includes('.html'));
 
                 if(isDemoType) {
-                    closeModal(); // 기존 모달 닫기
+                    closeModal();
                     
                     const elIframeTitle = document.getElementById('iframe-modal-title');
                     if(elIframeTitle) elIframeTitle.innerText = app.name || '';
                     setSelectRating(5, 'header-star-box');
                     
                     const iframe = document.getElementById('iframe-content');
-                    const fileContent = await getFileFromIDB(app.id);
+                    let fileContent = null;
+                    try {
+                        fileContent = await getFileFromIDB(app.id);
+                    } catch (err) {
+                        console.warn('IDB fetch failed, falling back to raw url', err);
+                    }
                     
                     if(iframe) {
                         if(fileContent) { 
@@ -1245,21 +1262,7 @@
                         }
                         else { 
                             iframe.removeAttribute('srcdoc'); 
-                            const safeUrl = sanitizeURL(app.github); 
-
-                            // 🚀 GitHub Raw URL 차단 우회를 위한 Fetch Blob 로직 (가장 중요한 부분)
-                            if (safeUrl.includes('raw.githubusercontent.com')) {
-                                try {
-                                    const res = await fetch(safeUrl);
-                                    const text = await res.text();
-                                    const blob = new Blob([text], { type: 'text/html;charset=utf-8' });
-                                    iframe.src = URL.createObjectURL(blob);
-                                } catch(e) {
-                                    iframe.src = safeUrl; // Fetch 실패시 원본 주소 삽입
-                                }
-                            } else {
-                                iframe.src = safeUrl;
-                            }
+                            iframe.src = sanitizeURL(app.github); 
                         }
                     }
                     
